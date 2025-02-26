@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="@TOC\nredisObject对象机制 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 typedef struct redisObject{ // 类型 unsigned type:4; // 编码方式 unsigned encoding:4; // LRU - 24位, 记录最末一次访问时间（相对于lru_clock）; 或者 LFU（最少使用的数据：8位频率，16位访问时间） unsigned lru:LRU_BITS; // LRU_BITS: 24 // 引用计数 int refcount; // 指向底层数据结构实例 void *ptr; } robj; 为什么Redis会设计redisObject对象？\n">
+<title>Redis-底层数据结构</title>
+
+<link rel='canonical' href='https://zzjjjjjjx/zjx.github.io/p/redis-%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/'>
+
+<link rel="stylesheet" href="/zjx.github.io/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="Redis-底层数据结构">
+<meta property='og:description' content="@TOC\nredisObject对象机制 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 typedef struct redisObject{ // 类型 unsigned type:4; // 编码方式 unsigned encoding:4; // LRU - 24位, 记录最末一次访问时间（相对于lru_clock）; 或者 LFU（最少使用的数据：8位频率，16位访问时间） unsigned lru:LRU_BITS; // LRU_BITS: 24 // 引用计数 int refcount; // 指向底层数据结构实例 void *ptr; } robj; 为什么Redis会设计redisObject对象？\n">
+<meta property='og:url' content='https://zzjjjjjjx/zjx.github.io/p/redis-%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/'>
+<meta property='og:site_name' content='张佳熙'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2024-04-06T14:09:41&#43;08:00'/><meta property='article:modified_time' content='2024-04-06T14:09:41&#43;08:00'/>
+<meta name="twitter:title" content="Redis-底层数据结构">
+<meta name="twitter:description" content="@TOC\nredisObject对象机制 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 typedef struct redisObject{ // 类型 unsigned type:4; // 编码方式 unsigned encoding:4; // LRU - 24位, 记录最末一次访问时间（相对于lru_clock）; 或者 LFU（最少使用的数据：8位频率，16位访问时间） unsigned lru:LRU_BITS; // LRU_BITS: 24 // 引用计数 int refcount; // 指向底层数据结构实例 void *ptr; } robj; 为什么Redis会设计redisObject对象？\n">
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/zjx.github.io/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/zjx.github.io/img/avatar_hu_a18561f8df22b413.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">😄</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/zjx.github.io">张佳熙</a></h1>
+            <h2 class="site-description">啊啊啊啊啊</h2>
+        </div>
+    </header><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/zjx.github.io/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+                    
+                        <li id="i18n-switch">  
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                            <select name="language" title="language" onchange="window.location.href = this.selectedOptions[0].value">
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/en/" >English</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/" selected>简体中文</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/ar/" >عربي</option>
+                                
+                            </select>
+                        </li>
+                    
+                
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li>
+      <ol>
+        <li>
+          <ol>
+            <li><a href="#redisobject对象机制">redisObject对象机制</a></li>
+            <li><a href="#动态字符串sds">动态字符串SDS</a></li>
+            <li><a href="#链表">链表</a></li>
+            <li><a href="#压缩链表">压缩链表</a></li>
+            <li><a href="#字典-dict">字典-Dict</a></li>
+            <li><a href="#整数集-intset">整数集-intSet</a></li>
+            <li><a href="#跳表---zskiplist">跳表 - ZSkipList</a></li>
+            <li><a href="#快表-quicklist">快表-quicklist</a></li>
+            <li><a href="#listpack">listpack</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/zjx.github.io/p/redis-%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">Redis-底层数据结构</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2024-04-06</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>@<a class="link" href="Redis-%e5%ba%95%e5%b1%82%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84" >TOC</a></p>
+<h4 id="redisobject对象机制">redisObject对象机制
+</h4><p><img src="https://i-blog.csdnimg.cn/blog_migrate/ca9bc7fea9d83ec5d2fa9f40b9019487.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">redisObject</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">     <span class="c1">// 类型
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="nl">type</span><span class="p">:</span><span class="mi">4</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 编码方式
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="nl">encoding</span><span class="p">:</span><span class="mi">4</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">      <span class="c1">// LRU - 24位, 记录最末一次访问时间（相对于lru_clock）; 或者 LFU（最少使用的数据：8位频率，16位访问时间）
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="nl">lru</span><span class="p">:</span><span class="n">LRU_BITS</span><span class="p">;</span> <span class="c1">// LRU_BITS: 24
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">     <span class="c1">// 引用计数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int</span> <span class="n">refcount</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 指向底层数据结构实例
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">   
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">robj</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>为什么Redis会设计redisObject对象？</p>
+<p>在redis的命令中，用于对键进行处理的命令占了很大一部分，而对于键所保存的值的类型（键的类型），键能执行的命令又各不相同。如： <code>LPUSH</code> 和 <code>LLEN</code> 只能用于列表键, 而 <code>SADD</code> 和 <code>SRANDMEMBER</code> 只能用于集合键, 等等; 另外一些命令, 比如 <code>DEL</code>、 <code>TTL</code> 和 <code>TYPE</code>, 可以用于任何类型的键；但是要正确实现这些命令, 必须为不同类型的键设置不同的处理方式: 比如说, 删除一个列表键和删除一个字符串键的操作过程就不太一样。</p>
+<p>以上的描述说明, <strong>Redis 必须让每个键都带有类型信息, 使得程序可以检查键的类型, 并为它选择合适的处理方式</strong></p>
+<p>为了解决以上问题, <strong>Redis 构建了自己的类型系统</strong>, 这个系统的主要功能包括:</p>
+<ul>
+<li>
+<p>redisObject 对象.</p>
+</li>
+<li>
+<p>基于 redisObject 对象的类型检查.</p>
+</li>
+<li>
+<p>基于 redisObject 对象的显式多态函数.</p>
+</li>
+<li>
+<p>对 redisObject 进行分配、共享和销毁的机制</p>
+</li>
+<li>
+<p><strong>type记录了对象所保存的值的类型</strong>，它的值可能是以下常量中的一个：</p>
+</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">* 对象类型
+</span></span></span><span class="line"><span class="cl"><span class="cm">*/</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_STRING 0 </span><span class="c1">// 字符串
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#define OBJ_LIST 1 </span><span class="c1">// 列表
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#define OBJ_SET 2 </span><span class="c1">// 集合
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#define OBJ_ZSET 3 </span><span class="c1">// 有序集
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#define OBJ_HASH 4 </span><span class="c1">// 哈希表
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>encoding记录了对象所保存的值的编码</strong>，它的值可能是以下常量中的一个：</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/*
+</span></span></span><span class="line"><span class="cl"><span class="cm">* 对象编码
+</span></span></span><span class="line"><span class="cl"><span class="cm">*/</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_RAW 0     </span><span class="cm">/* Raw representation */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_INT 1     </span><span class="cm">/* Encoded as integer */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_HT 2      </span><span class="cm">/* Encoded as hash table */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_ZIPMAP 3  </span><span class="cm">/* 注意：版本2.6后不再使用. */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_LINKEDLIST 4 </span><span class="cm">/* 注意：不再使用了，旧版本2.x中String的底层之一. */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_ZIPLIST 5 </span><span class="cm">/* Encoded as ziplist */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_INTSET 6  </span><span class="cm">/* Encoded as intset */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_SKIPLIST 7  </span><span class="cm">/* Encoded as skiplist */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_EMBSTR 8  </span><span class="cm">/* Embedded sds string encoding */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_QUICKLIST 9 </span><span class="cm">/* Encoded as linked list of ziplists */</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define OBJ_ENCODING_STREAM 10 </span><span class="cm">/* Encoded as a radix tree of listpacks */</span><span class="cp">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>redis执行命令的过程
+<img src="https://i-blog.csdnimg.cn/blog_migrate/46dbb83383f144a4a94ca70710852988.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<h6 id="对象共享">对象共享
+</h6><p>redis一般会把一些常见的值放到一个共享对象中，这样可使程序避免了重复分配的麻烦，也节约了一些CPU时间。</p>
+<p><strong>redis预分配的值对象如下</strong>：</p>
+<ul>
+<li>各种命令的返回值，比如成功时返回的OK，错误时返回的ERROR，命令入队事务时返回的QUEUE，等等</li>
+<li>包括0 在内，小于REDIS_SHARED_INTEGERS的所有整数（REDIS_SHARED_INTEGERS的默认值是10000）</li>
+</ul>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/c3ec0928bec29907e2a21bc7cebba134.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="img"
+	
+	
+></p>
+<h6 id="引用计数以及对象的消毁">引用计数以及对象的消毁
+</h6><p>redisObject中有refcount属性，是对象的引用计数，显然计数0那么就是可以回收。</p>
+<ul>
+<li>每个redisObject结构都带有一个refcount属性，指示这个对象被引用了多少次；</li>
+<li>当新创建一个对象时，它的refcount属性被设置为1；</li>
+<li>当对一个对象进行共享时，redis将这个对象的refcount加一；</li>
+<li>当使用完一个对象后，或者消除对一个对象的引用之后，程序将对象的refcount减一；</li>
+<li>当对象的refcount降至0 时，这个RedisObject结构，以及它引用的数据结构的内存都会被释放。</li>
+</ul>
+<h4 id="动态字符串sds">动态字符串SDS
+</h4><p>redis中保存的key是字符串,value往往是字符串或者字符串的集合,可见字符串是redis中最常用的一种数据结构</p>
+<p>C语言字符串问题:c语言字符串本质是一个字符数组</p>
+<ul>
+<li>获取字符串长度需要通过运算(O(n))</li>
+<li>非二进制安全(字符数组末尾会有个&rsquo;\0&rsquo;来标记结束)</li>
+<li>不可修改</li>
+</ul>
+<p>为此redis构建了一种新的字符串结构,称为简单动态字符串简称:SDS</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/c5e2047b95c5778ce21a00196dce391e.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<ul>
+<li><strong>len，记录了字符串长度</strong>。这样获取字符串长度的时候，只需要返回这个成员变量值就行，时间复杂度只需要 O（1）。</li>
+<li><strong>alloc，分配给字符数组的空间长度</strong>。这样在修改字符串的时候，可以通过 <code>alloc - len</code> 计算出剩余的空间大小，可以用来判断空间是否满足修改需求，如果不满足的话，就会自动将 SDS 的空间扩展至执行修改所需的大小，然后才执行实际的修改操作，所以使用 SDS 既不需要手动修改 SDS 的空间大小，也不会出现前面所说的缓冲区溢出的问题。</li>
+<li><strong>flags，用来表示不同类型的 SDS</strong>。一共设计了 5 种类型，分别是 sdshdr5、sdshdr8、sdshdr16、sdshdr32 和 sdshdr64，后面在说明区别之处。</li>
+<li><strong>buf[]，字符数组，用来保存实际数据</strong>。不仅可以保存字符串，也可以保存二进制数据。</li>
+</ul>
+<p>Redis 一共设计了 5 种类型，分别是 sdshdr5、sdshdr8、sdshdr16、sdshdr32 和 sdshdr64。</p>
+<p>这 5 种类型的主要区别就在于，它们数据结构中的 len 和 alloc 成员变量的数据类型不同。</p>
+<p>比如 sdshdr8它的定义分别如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="c1">//__attribute__ ((packed)) ，它的作用是：告诉编译器取消结构体在编译过程中的优化对齐，按照实际占用字节数进行对齐。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">struct</span> <span class="nf">__attribute__</span> <span class="p">((</span><span class="n">__packed__</span><span class="p">))</span> <span class="n">sdshdr8</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint8_t</span> <span class="n">len</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">uint8_t</span> <span class="n">alloc</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">flags</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">buf</span><span class="p">[];</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>SDS扩容原理:</p>
+<ul>
+<li>如果所需的 sds 长度<strong>小于 1 MB</strong>，那么最后的扩容是按照<strong>翻倍扩容</strong>来执行的，即 2 倍的newlen</li>
+<li>如果所需的 sds 长度<strong>超过 1 MB</strong>，那么最后的扩容长度应该是 newlen <strong>+ 1MB</strong>。</li>
+</ul>
+<p>这样的好处是，下次在操作 SDS 时，如果 SDS 空间够的话，API 就会直接使用「未使用空间」，而无须执行内存分配，<strong>有效的减少内存分配次数</strong>。</p>
+<h4 id="链表">链表
+</h4><p>常见的双向链表的实现方式</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">listNode</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//前置节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">listNode</span> <span class="o">*</span><span class="n">prev</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//后置节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">listNode</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//节点的值
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="o">*</span><span class="n">value</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">l</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>redis在listNode结构体基础上又封装了list</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">list</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//链表头节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">listNode</span> <span class="o">*</span><span class="n">head</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//链表尾节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">listNode</span> <span class="o">*</span><span class="n">tail</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//节点值复制函数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">dup</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//节点值释放函数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">free</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//节点值比较函数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">match</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">key</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//链表节点数量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">len</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">list</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="链表的优缺点">链表的优缺点:
+</h5><p>优点:</p>
+<ul>
+<li>listNode 链表节点的结构里带有 prev 和 next 指针，<strong>获取某个节点的前置节点或后置节点的时间复杂度只需O(1)，而且这两个指针都可以指向 NULL，所以链表是无环链表</strong>；</li>
+<li>list 结构因为提供了表头指针 head 和表尾节点 tail，所以<strong>获取链表的表头节点和表尾节点的时间复杂度只需O(1)</strong>；</li>
+<li>list 结构因为提供了链表节点数量 len，所以<strong>获取链表中的节点数量的时间复杂度只需O(1)</strong>；</li>
+<li>listNode 链表节使用 void* 指针保存节点值，并且可以通过 list 结构的 dup、free、match 函数指针为节点设置该节点类型特定的函数，因此<strong>链表节点可以保存各种不同类型的值</strong>；</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>链表每个节点之间的内存都是不连续的，意味着<strong>无法很好利用 CPU 缓存</strong>。能很好利用 CPU 缓存的数据结构就是数组，因为数组的内存是连续的，这样就可以充分利用 CPU 缓存来加速访问。</li>
+<li>还有一点，保存一个链表节点的值都需要一个链表节点结构头的分配，<strong>内存开销较大</strong>。</li>
+</ul>
+<p>因此，Redis 3.0 的 List 对象在数据量比较少的情况下，会采用「压缩列表」作为底层数据结构的实现，它的优势是节省内存空间，并且是内存紧凑型的数据结构。</p>
+<p>不过，压缩列表存在性能问题（具体什么问题，下面会说），所以 Redis 在 3.2 版本设计了新的数据结构 quicklist，并将 List 对象的底层数据结构改由 quicklist 实现。</p>
+<p>然后在 Redis 5.0 设计了新的数据结构 listpack，沿用了压缩列表紧凑型的内存布局，最终在最新的 Redis 版本，将 Hash 对象和 Zset 对象的底层数据结构实现之一的压缩列表，替换成由 listpack 实现。</p>
+<h4 id="压缩链表">压缩链表
+</h4><p>压缩列表是 Redis 为了节约内存而开发的，它是<strong>由连续内存块组成的顺序型数据结构</strong>，有点类似于数组。</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/edcd966699084ffc1ef56d44ce141ca3.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="img"
+	
+	
+></p>
+<ul>
+<li>
+<p><code>zlbytes</code>字段的类型是uint32_t, 这个字段中存储的是整个ziplist所占用的内存的字节数</p>
+</li>
+<li>
+<p><code>zltail</code>字段的类型是uint32_t, 它指的是ziplist中最后一个entry的偏移量. 用于快速定位最后一个entry, 以快速完成pop等操作</p>
+</li>
+<li>
+<p><code>zllen</code>字段的类型是uint16_t, 它指的是整个ziplit中entry的数量. 这个值只占2bytes（16位）: 如果ziplist中entry的数目小于65535(2的16次方), 那么该字段中存储的就是实际entry的值. 若等于或超过65535, 那么该字段的值固定为65535, 但实际数量需要一个个entry的去遍历所有entry才能得到.</p>
+</li>
+<li>
+<p><code>zlend</code>是一个终止字节, 其值为全F, 即0xff. ziplist保证任何情况下, 一个entry的首字节都不会是255</p>
+<p><strong>前三这个都采用小端的存储方式</strong></p>
+</li>
+</ul>
+<p>常见的entry的结构为**<prevlen>  <encoding>  <entry-data>**</p>
+<ul>
+<li><code>prevlen</code>：前一个entry的大小 为了实现从后往前遍历；</li>
+</ul>
+<p>​    当前一个元素长度小于254（255用于zlend）的时候，prevlen长度为1个字节，值即为前一个entry的长度，如果长               	  	度大于等于254的时候，prevlen用5个字节表示，第一字节设置为254，后面4个字节存储一个小端的无符号整        				   	型，表示前一个entry的长度；</p>
+<ul>
+<li>
+<p><code>encoding</code>：不同的情况下值不同，用于表示当前entry的类型和长度；</p>
+<p>如果<strong>当前节点的数据是整数</strong>，则 encoding 会使用 <strong>1 字节的空间</strong>进行编码，也就是 encoding 长度为 1 字节。通过 encoding 确认了整数类型，就可以确认整数数据的实际大小了，比如如果 encoding 编码确认了数据是 int16 整数，那么 data 的长度就是 int16 的大小。</p>
+<p>如果<strong>当前节点的数据是字符串，根据字符串的长度大小</strong>，encoding 会使用 <strong>1 字节/2字节/5字节的空间</strong>进行编码，encoding 编码的前两个 bit 表示数据的类型，后续的其他 bit 标识字符串数据的实际长度，即 data 的长度</p>
+</li>
+<li>
+<p><code>entry-data</code>：真是用于存储entry表示的数据；</p>
+</li>
+</ul>
+<p><strong>在entry中存储的是int类型时，encoding和entry-data会合并在encoding中表示，此时没有entry-data字段；</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">zlentry</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">     <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">prevrawlensize</span><span class="p">;</span> <span class="c1">//表示 previous_entry_length字段的长度
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>     <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">prevrawlen</span><span class="p">;</span> <span class="c1">//表示 previous_entry_length字段存储的内容
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>     <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">lensize</span><span class="p">;</span>   <span class="c1">//表示 encoding字段的长度
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>     <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">len</span><span class="p">;</span> <span class="c1">//表示数据内容长度
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>     <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">headersize</span><span class="p">;</span><span class="c1">//表示当前元素的首部长度，即previous_entry_length字段长度与encoding字段长度之和
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>     <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">encoding</span><span class="p">;</span> <span class="c1">//表示数据类型
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>     <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>     <span class="c1">//p表示当前元素首地址
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span><span class="n">zlentry</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="ziplist的缺点">ziplist的缺点
+</h5><ul>
+<li>
+<p>ziplist也不预留内存空间, 并且在移除结点后, 也是立即缩容, 这代表每次写操作都会进行内存分配操作.</p>
+</li>
+<li>
+<p>结点如果扩容, 导致结点占用的内存增长, 并且超过254字节的话, 可能会导致链式反应: 其后一个结点的entry.prevlen需要从一字节扩容至五字节. <strong>最坏情况下, 第一个结点的扩容, 会导致整个ziplist表中的后续所有结点的entry.prevlen字段扩容</strong>. 虽然这个内存重分配的操作依然只会发生一次, 但代码中的时间复杂度是o(N)级别, 因为链式扩容只能一步一步的计算.</p>
+<p>因此，<strong>压缩列表只会用于保存的节点数量不多的场景</strong>，只要节点数量足够小，即使发生连锁更新，也是能接受的。</p>
+</li>
+</ul>
+<h4 id="字典-dict">字典-Dict
+</h4><p>哈希表结构</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">dictht</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//哈希表数组
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">dictEntry</span> <span class="o">**</span><span class="n">table</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//哈希表大小
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">size</span><span class="p">;</span>  
+</span></span><span class="line"><span class="cl">    <span class="c1">//哈希表大小掩码，用于计算索引值
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">sizemask</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//该哈希表已有的节点数量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">used</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">dictht</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>哈希节点结构</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">dictEntry</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//键值对中的键
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="o">*</span><span class="n">key</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  
+</span></span><span class="line"><span class="cl">    <span class="c1">//键值对中的值
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">union</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">void</span> <span class="o">*</span><span class="n">val</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">uint64_t</span> <span class="n">u64</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int64_t</span> <span class="n">s64</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">double</span> <span class="n">d</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="n">v</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">     <span class="c1">//指向下一个哈希表节点，形成链表
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">dictEntry</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">dict</span>
+</span></span><span class="line"><span class="cl">    
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>​    dictEntry 结构里键值对中的值是一个「联合体 v」定义的，因此，键值对中的值可以是一个指向实际值的指针，或者是一个无符号的 64 位整数或有符号的 64 位整数或double 类的值。这么做的好处是可以节省内存空间，因为当「值」是整数或浮点数时，就可以将值的数据内嵌在 dictEntry 结构里，无需再用一个指针指向实际的值，从而节省了内存空间。</p>
+<p><strong>Redis采用链式哈希存储哈希冲突</strong></p>
+<p>b452135f44fab77e3c578d91666e.png#pic_center)</p>
+<p>链式哈希局限性也很明显，随着链表长度的增加，在查询这一位置上的数据的耗时就会增加，毕竟链表的查询的时间复杂度是 O(n)。</p>
+<p>要想解决这一问题，就需要进行 rehash，也就是对哈希表的大小进行扩展。</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/a7cb2223ec8e84074b468f7d5f0f30bd.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<h5 id="rehash">rehash
+</h5><ul>
+<li><strong>扩容和收缩</strong>：当哈希表保存的键值对太多或者太少时，就要通过 rehash(重新散列）来对哈希表进行相应的扩展或者收缩。具体步骤：</li>
+</ul>
+<p>1、如果执行扩展操作，会基于原哈希表创建一个大小等于 ht[0].used*2n 的哈希表（也就是每次扩展都是根据原哈希表已使用的空间扩大一倍创建另一个哈希表）。相反如果执行的是收缩操作，每次收缩是根据已使用空间缩小一倍创建一个新的哈希表。</p>
+<p>redis定义一个dict结构体,其中两个哈希表</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">dict</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="err">…</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//两个Hash表，交替使用，用于rehash操作
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">dictht</span> <span class="n">ht</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span> 
+</span></span><span class="line"><span class="cl">    <span class="err">…</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">dict</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>2、重新利用上面的哈希算法，计算索引值，然后将键值对放到新的哈希表位置上。</p>
+<p>3、所有键值对都迁徙完毕后，释放原哈希表的内存空间。</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/3d054c9928878e4cefff3946f93ada08.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p><strong>触发扩容的条件</strong>：</p>
+<p>1、服务器目前没有执行 BGSAVE 命令或者 BGREWRITEAOF 命令，并且负载因子大于等于1。</p>
+<p>2、服务器目前正在执行 BGSAVE 命令或者 BGREWRITEAOF 命令，并且负载因子大于等于5。</p>
+<p><strong>负载因子 = 哈希表已保存节点数量 / 哈希表大小</strong></p>
+<h5 id="渐进式rehash">渐进式rehash
+</h5><p>如果「哈希表 1 」的数据量非常大，那么在迁移至「哈希表 2 」的时候，因为会涉及大量的数据拷贝，此时可能会对 Redis 造成阻塞，无法服务其他请求。因此redis采用的是渐进式rehash</p>
+<p>渐进式 rehash 步骤如下：</p>
+<ul>
+<li>给「哈希表 2」 分配空间；</li>
+<li>在 rehash 进行期间，每次哈希表元素进行新增、删除、查找或者更新操作时，Redis 除了会执行对应的操作之外，还会顺序将「哈希表 1 」中索引位置上的所有 key-value 迁移到「哈希表 2」 上；</li>
+<li>随着处理客户端发起的哈希表操作请求数量越多，最终在某个时间点会把「哈希表 1 」的所有 key-value 迁移到「哈希表 2」，从而完成 rehash 操作。</li>
+</ul>
+<p><strong>在渐进式hash过程中哈希表1不再进行增加操作,哈希表元素的删除、查找、更新等操作都会在这两个哈希表进行。</strong></p>
+<h4 id="整数集-intset">整数集-intSet
+</h4><p>整数集合本质上是一块连续内存空间，它的结构定义如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">intset</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//编码方式
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">uint32_t</span> <span class="n">encoding</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//集合包含的元素数量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">uint32_t</span> <span class="n">length</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//保存元素的数组
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int8_t</span> <span class="n">contents</span><span class="p">[];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">intset</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>encoding</code> 表示编码方式，的取值有三个：INTSET_ENC_INT16, INTSET_ENC_INT32, INTSET_ENC_INT64</p>
+<p><code>length</code> 代表其中存储的整数的个数</p>
+<p><code>contents</code> 指向实际存储数值的连续内存区域, 就是一个数组；整数集合的每个元素都是 contents 数组的一个数组项（item），各个项在数组中按值得大小<strong>从小到大有序排序</strong>，且数组中不包含任何重复项。（虽然 intset 结构将 contents 属性声明为 int8_t 类型的数组，但实际上 contents 数组并不保存任何 int8_t 类型的值，contents 数组的真正类型取决于 encoding 属性的值）</p>
+<h5 id="内存分布图">内存分布图
+</h5><p><img src="https://i-blog.csdnimg.cn/blog_migrate/8a4e65e58925eb4858115ae1acbf61d2.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="img"
+	
+	
+></p>
+<h5 id="整数集合的升级">整数集合的升级
+</h5><p>当在一个int16类型的整数集合中插入一个int32类型的值，整个集合的所有元素都会转换成32类型。 整个过程有三步：</p>
+<ul>
+<li>根据新元素的类型（比如int32），扩展整数集合底层数组的空间大小，并为新元素分配空间。</li>
+<li>将底层数组现有的所有元素都转换成与新元素相同的类型， 并将类型转换后的元素放置到正确的位上， 而且在放置元素的过程中， 需要继续维持底层数组的有序性质不变。</li>
+<li>最后改变encoding的值，length+1。</li>
+</ul>
+<p><strong>升级过程</strong></p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/6678b5eb88c73df86a6d93fe3d937418.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p><strong>那么如果我们删除掉刚加入的int32类型时，会不会做一个降级操作呢</strong>？</p>
+<p>不会。主要还是减少开销的权衡。</p>
+<h4 id="跳表---zskiplist">跳表 - ZSkipList
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">zskiplistNode</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//Zset 对象的元素值
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">sds</span> <span class="n">ele</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//元素权重值
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">double</span> <span class="n">score</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//后向指针
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">zskiplistNode</span> <span class="o">*</span><span class="n">backward</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//节点的level数组，保存每层上的前向指针和跨度
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">zskiplistLevel</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">struct</span> <span class="n">zskiplistNode</span> <span class="o">*</span><span class="n">forward</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">span</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="n">level</span><span class="p">[];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">zskiplistNode</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">zskiplist</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">struct</span> <span class="n">zskiplistNode</span> <span class="o">*</span><span class="n">header</span><span class="p">,</span> <span class="o">*</span><span class="n">tail</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">length</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">level</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">zskiplist</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>跳表的结构:</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/19ff441a85457ee4632a09a33c2fd033.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>跳表的查找过程</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/7f16a245a0d7303850565a44eddf2fef.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="img"
+	
+	
+></p>
+<p>如果要查找「元素：abcd，权重：4」的节点，查找的过程是这样的：</p>
+<ul>
+<li>先从头节点的最高层开始，找「元素：abc，权重：3」节点，这个节点的权重比要查找节点的小，所以要访问该层上的下一个节点；</li>
+<li>但是该层的下一个节点是空节点（ leve[2]指向的是空节点），于是就会跳到「元素：abc，权重：3」节点的下一层去找，也就是 leve[1];</li>
+<li>「元素：abc，权重：3」节点的 leve[1] 的下一个指针指向了「元素：abcde，权重：4」的节点，然后将其和要查找的节点比较。虽然「元素：abcde，权重：4」的节点的权重和要查找的权重相同，但是当前节点的 SDS 类型数据「大于」要查找的数据，所以会继续跳到「元素：abc，权重：3」节点的下一层去找，也就是 leve[0]；</li>
+<li>「元素：abc，权重：3」节点的 leve[0] 的下一个指针指向了「元素：abcd，权重：4」的节点，该节点正是要查找的节点，查询结束。</li>
+</ul>
+<p>跳表的节点层数设置:</p>
+<p><strong>跳表的相邻两层的节点数量的比例会影响跳表的查询性能。</strong></p>
+<p><strong>那怎样才能维持相邻两层的节点数量的比例为 2 : 1 呢？</strong></p>
+<p>如果采用新增节点或者删除节点时，来调整跳表节点以维持比例的方法的话，会带来额外的开销。</p>
+<p>Redis 则采用一种巧妙的方法是，<strong>跳表在创建节点的时候，随机生成每个节点的层数</strong>，并没有严格维持相邻两层的节点数量比例为 2 : 1 的情况。</p>
+<p>具体的做法是，<strong>跳表在创建节点时候，会生成范围为[0-1]的一个随机数，如果这个随机数小于 0.25（相当于概率 25%），那么层数就增加 1 层，然后继续生成下一个随机数，直到随机数的结果大于 0.25 结束，最终确定该节点的层数</strong>。</p>
+<p>这样的做法，相当于每增加一层的概率不超过 25%，层数越高，概率越低，层高最大限制是 64。</p>
+<p>虽然我前面讲解跳表的时候，图中的跳表的「头节点」都是 3 层高，但是其实<strong>如果层高最大限制是 64，那么在创建跳表「头节点」的时候，就会直接创建 64 层高的头节点</strong>。</p>
+<p>如下代码，创建跳表时，头节点的 level 数组有 ZSKIPLIST_MAXLEVEL个元素（层），节点不存储任何 member 和 score 值，level 数组元素的 forward 都指向NULL， span值都为0。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cm">/* Create a new skiplist. */</span>
+</span></span><span class="line"><span class="cl"><span class="n">zskiplist</span> <span class="o">*</span><span class="nf">zslCreate</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">j</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">zskiplist</span> <span class="o">*</span><span class="n">zsl</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">zsl</span> <span class="o">=</span> <span class="nf">zmalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="o">*</span><span class="n">zsl</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">zsl</span><span class="o">-&gt;</span><span class="n">level</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">zsl</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">zsl</span><span class="o">-&gt;</span><span class="n">header</span> <span class="o">=</span> <span class="nf">zslCreateNode</span><span class="p">(</span><span class="n">ZSKIPLIST_MAXLEVEL</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">ZSKIPLIST_MAXLEVEL</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">zsl</span><span class="o">-&gt;</span><span class="n">header</span><span class="o">-&gt;</span><span class="n">level</span><span class="p">[</span><span class="n">j</span><span class="p">].</span><span class="n">forward</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">zsl</span><span class="o">-&gt;</span><span class="n">header</span><span class="o">-&gt;</span><span class="n">level</span><span class="p">[</span><span class="n">j</span><span class="p">].</span><span class="n">span</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="n">zsl</span><span class="o">-&gt;</span><span class="n">header</span><span class="o">-&gt;</span><span class="n">backward</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">zsl</span><span class="o">-&gt;</span><span class="n">tail</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">zsl</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其中，ZSKIPLIST_MAXLEVEL 定义的是最高的层数，Redis 7.0 定义为 32，Redis 5.0 定义为 64，Redis 3.0 定义为 32。</p>
+<h4 id="快表-quicklist">快表-quicklist
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">quicklist</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//quicklist的链表头
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">quicklistNode</span> <span class="o">*</span><span class="n">head</span><span class="p">;</span>      <span class="c1">//quicklist的链表头
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">//quicklist的链表尾
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">quicklistNode</span> <span class="o">*</span><span class="n">tail</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl">    <span class="c1">//所有压缩列表中的总元素个数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//quicklistNodes的个数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">len</span><span class="p">;</span>       
+</span></span><span class="line"><span class="cl">    <span class="p">...</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">quicklist</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">quicklistNode</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">//前一个quicklistNode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">quicklistNode</span> <span class="o">*</span><span class="n">prev</span><span class="p">;</span>     <span class="c1">//前一个quicklistNode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">//下一个quicklistNode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">struct</span> <span class="n">quicklistNode</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>     <span class="c1">//后一个quicklistNode
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">//quicklistNode指向的压缩列表
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">zl</span><span class="p">;</span>              
+</span></span><span class="line"><span class="cl">    <span class="c1">//压缩列表的的字节大小
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">sz</span><span class="p">;</span>                
+</span></span><span class="line"><span class="cl">    <span class="c1">//压缩列表的元素个数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="nl">count</span> <span class="p">:</span> <span class="mi">16</span><span class="p">;</span>        <span class="c1">//ziplist中的元素个数 
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">....</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="n">quicklistNode</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>quicklist内存布局图:</p>
+<img src="https://i-blog.csdnimg.cn/blog_migrate/a226b2ba2ee8e6291edf868ebdd5765b.png" alt="img" style="zoom:67%;" />
+<p>在向 quicklist 添加一个元素的时候，不会像普通的链表那样，直接新建一个链表节点。而是会检查插入位置的压缩列表是否能容纳该元素，如果能容纳就直接保存到 quicklistNode 结构里的压缩列表，如果不能容纳，才会新建一个新的 quicklistNode 结构。</p>
+<p>quicklist 会控制 quicklistNode 结构里的压缩列表的大小或者元素个数，来规避潜在的连锁更新的风险，但是这并没有完全解决连锁更新的问题</p>
+<h4 id="listpack">listpack
+</h4><p><img src="https://i-blog.csdnimg.cn/blog_migrate/11badce93c8fca760e3896bbed236574.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<ul>
+<li>encoding，定义该元素的编码类型，会对不同长度的整数和字符串进行编码；</li>
+<li>data，实际存放的数据；</li>
+<li>len，encoding+data的总长度；</li>
+</ul>
+<p><strong>listpack如何解决反向遍历的</strong>?</p>
+<p>首先访问 listpack 的前4字节得到总长度，然后就可以定位到末尾结尾符位置。然后指针左移就可以访问到最后一个元素的长度 len，指针再左移 len 就可以访问最后一个元素的 encoding，根据编码方式访问元素。指针再左移又可以访问到倒数第2个元素的长度，以此类推。
+访问元素长度len字段时，有一个关键点，就是如何判断 len 部分结束了。因为 len 可能占用1字节，也可能占用多个字节。listpack 的做法是，<strong>每个字节只使用 7 Bit，最高位来表示是否还要继续读</strong>。</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2023 - 
+        
+        2025 zjx
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/zjx.github.io/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

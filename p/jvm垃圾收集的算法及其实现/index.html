@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="@TOC\n垃圾收集的算法从判定对象消亡的的角度除法,可以分为引用计数式垃圾收集和追踪式垃圾收集两大类,这两大类常被称为直接垃圾收集和间接垃圾收集\n分代收集理论: 弱分代假说:绝大多数对象都是朝生夕死的 强分代假说:熬过越多次垃圾收集过程的对象就越难以消亡 把那些朝生夕死的放到一个区域,就能以极低的代价回收到大量的空间,把难以消亡的对象集中到一起,虚拟机就可以以较低的 频率去回收这个区域,兼顾了垃圾回收的时间开销和内存的空间有效利用\n">
+<title>JVM垃圾收集的算法及其实现</title>
+
+<link rel='canonical' href='https://zzjjjjjjx/zjx.github.io/p/jvm%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%9A%84%E7%AE%97%E6%B3%95%E5%8F%8A%E5%85%B6%E5%AE%9E%E7%8E%B0/'>
+
+<link rel="stylesheet" href="/zjx.github.io/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="JVM垃圾收集的算法及其实现">
+<meta property='og:description' content="@TOC\n垃圾收集的算法从判定对象消亡的的角度除法,可以分为引用计数式垃圾收集和追踪式垃圾收集两大类,这两大类常被称为直接垃圾收集和间接垃圾收集\n分代收集理论: 弱分代假说:绝大多数对象都是朝生夕死的 强分代假说:熬过越多次垃圾收集过程的对象就越难以消亡 把那些朝生夕死的放到一个区域,就能以极低的代价回收到大量的空间,把难以消亡的对象集中到一起,虚拟机就可以以较低的 频率去回收这个区域,兼顾了垃圾回收的时间开销和内存的空间有效利用\n">
+<meta property='og:url' content='https://zzjjjjjjx/zjx.github.io/p/jvm%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%9A%84%E7%AE%97%E6%B3%95%E5%8F%8A%E5%85%B6%E5%AE%9E%E7%8E%B0/'>
+<meta property='og:site_name' content='张佳熙'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2023-12-10T14:09:41&#43;08:00'/><meta property='article:modified_time' content='2023-12-10T14:09:41&#43;08:00'/>
+<meta name="twitter:title" content="JVM垃圾收集的算法及其实现">
+<meta name="twitter:description" content="@TOC\n垃圾收集的算法从判定对象消亡的的角度除法,可以分为引用计数式垃圾收集和追踪式垃圾收集两大类,这两大类常被称为直接垃圾收集和间接垃圾收集\n分代收集理论: 弱分代假说:绝大多数对象都是朝生夕死的 强分代假说:熬过越多次垃圾收集过程的对象就越难以消亡 把那些朝生夕死的放到一个区域,就能以极低的代价回收到大量的空间,把难以消亡的对象集中到一起,虚拟机就可以以较低的 频率去回收这个区域,兼顾了垃圾回收的时间开销和内存的空间有效利用\n">
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/zjx.github.io/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/zjx.github.io/img/avatar_hu_a18561f8df22b413.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">😄</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/zjx.github.io">张佳熙</a></h1>
+            <h2 class="site-description">啊啊啊啊啊</h2>
+        </div>
+    </header><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/zjx.github.io/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+                    
+                        <li id="i18n-switch">  
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                            <select name="language" title="language" onchange="window.location.href = this.selectedOptions[0].value">
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/en/" >English</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/" selected>简体中文</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/ar/" >عربي</option>
+                                
+                            </select>
+                        </li>
+                    
+                
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li>
+      <ol>
+        <li>
+          <ol>
+            <li></li>
+            <li><a href="#hotspot的算法细节实现">HotSpot的算法细节实现</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/zjx.github.io/p/jvm%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%9A%84%E7%AE%97%E6%B3%95%E5%8F%8A%E5%85%B6%E5%AE%9E%E7%8E%B0/">JVM垃圾收集的算法及其实现</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-12-10</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>@<a class="link" href="%e5%9e%83%e5%9c%be%e6%94%b6%e9%9b%86%e7%9a%84%e7%ae%97%e6%b3%95" >TOC</a></p>
+<p>垃圾收集的算法从判定对象消亡的的角度除法,可以分为引用计数式垃圾收集和追踪式垃圾收集两大类,这两大类常被称为直接垃圾收集和间接垃圾收集</p>
+<h6 id="分代收集理论">分代收集理论:
+</h6><ul>
+<li>弱分代假说:绝大多数对象都是朝生夕死的</li>
+<li>强分代假说:熬过越多次垃圾收集过程的对象就越难以消亡</li>
+</ul>
+<p>把那些朝生夕死的放到一个区域,就能以极低的代价回收到大量的空间,把难以消亡的对象集中到一起,虚拟机就可以以较低的     频率去回收这个区域,兼顾了垃圾回收的时间开销和内存的空间有效利用</p>
+<p>**存在问题:**对象不是相互独立的,对象之间是可以相互引用的,假如要进行一次局限于新生代的收集,但新生代中的对象完全有可能被老年代所引用的,为了找出区域中的存活对象,我们不能不在固定的GC Roots中加入整个老年代中所有对象来确保可达性分析结果的正确性,这无疑给内存回收带来了很大的负担,为了解决这个问题,在分代收集理论的基础上加入了第三条法则&quot;跨代引用相对同代引用来说占极少数&quot;</p>
+<p>解决方案:根据第三条假说,我们就不应再为少量的跨代引用去扫描整个老年代,也不必浪费空间专门记录每个对象是否存在及存在哪些跨年代引用,只需在新生代上建立一个全局的数据结构(记忆集),这个结构把老年代划分为若干个小块,标识出那块内存会存在跨代引用,之后发生minor GC的时候只需要把这些对象加入到GC Roots中进行扫描</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/68a5c5eb9d049986c2ec07afcc8e36b4.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>垃圾收集的分类:</p>
+<ul>
+<li>新生代收集 Minor GC / Young GC：指目标指示新生代的垃圾收集</li>
+<li>老年代收集 Major GC / Old GC：指目标指示老年代的垃圾收集</li>
+<li>混合收集 Mixed GC：整个新生代和部分老年代的垃圾收集</li>
+<li>整堆收集 Full GC：收集整个 Java 堆和方法区的垃圾收集</li>
+</ul>
+<h6 id="标记-清楚算法">标记-清楚算法
+</h6><p><img src="https://i-blog.csdnimg.cn/blog_migrate/8411737361270c5f36338155fbe012d9.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>缺点:</p>
+<ul>
+<li>效率问题，标记和清除的过程效率都不高,随着对象数量的增长而降低</li>
+<li>清除结束后会造成大量的碎片空间。有可能会造成在申请大块内存的时候因为没有足够的连续空间导致再次 GC。</li>
+</ul>
+<h6 id="标记-复制算法">标记-复制算法
+</h6><p>复制算法的原理是，将内存分成两块，每次申请内存时都使用其中的一块，当内存不够时，将这一块内存中所有存活的复制到另一块上。然后将然后再把已使用的内存整个清理掉。</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/3d55f5d3f434e967f2a14e227ce226c7.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>缺点</p>
+<ol>
+<li>如果存活对象过多，可能会有大量的时间浪费复制上，所以这方法主要是针对存活率小的情况</li>
+<li>空间浪费,将原来可用的空间压缩为原来的一半</li>
+</ol>
+<p>因为新生代中有98%的对象都熬不过第一轮的回收，只有2%的对象可以存活下来。如果盲目将新生代划分为1 : 1的比例，就会浪费很多的空间。所以厂商们将新生代的布局划分为了<strong>一块较大的 Eden 空间和两块较小的 Survivor 空间。每次分配内存都是只是用 Eden 和其中一块 Survivor 空间。当 Minor 垃圾回收后，将存活的对象存放在保留的 Survivor 空间中，清空 Eden 和之前使用的 Survivor 空间。</strong></p>
+<p>注:如果保留的survivor的空间不足够存放上一次垃圾收集下来的对象,这些对象便将通过分配担保机制直接进入老年代</p>
+<h6 id="标记-整理算法">标记-整理算法.
+</h6><p>标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象进行清理，而是让所有存活的对象都向内存空间一端<strong>移动</strong>，然后直接清理掉边界以外的内存</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/e6a6f1b1527f54fcf2c08ed3d510b38e.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>在 GC 过程中移动存活对象，并更新所有引用这些对象的地方的数据，是一种极为负重的操作，而且移动操作必须暂停用户应用进程才能进行。这种暂停被描述为“ Stop The World”，也就是 STW。</p>
+<p>如果像标记-清除算法那样子完全不考虑移动和整理，Java 堆中的空间碎片问题将十分严重，只能依赖更复杂的内存分配器和内存访问器来解决。内存访问是用户程序中最频繁的操作，如果在此环节上添加额外的负担，势必会直接影响程序的吞吐量。</p>
+<p>那么移动会发生 STW，但是内存分配的时候更简单。直接清除会产生内存碎片，但是垃圾回收的时候更方便。无论是移动与否都有弊端。从垃圾回收的 STW 来看，直接清除的 STW 最短，甚至不用停顿，但从整个程序的吞吐量来看，移动对象更划算。不同的虚拟机实现厂商的注重点不同，他们的收集器也不一样。</p>
+<p>还有一种“和稀泥式”解决方案可以不在内存分配和访问上增加太大额外负担，做法是让虚拟机平时多数时间都采用标记-清除算法，暂时容忍内存碎片的存在，直到内存空间的碎片化程度已经大到影响对象分配时，再采用标记-整理算法收集一次，以获得规整的内存空间。前面提到的基于标记-清除算法的 CMS 收集器面临空间碎片过多时采用的就是这种处理办法。</p>
+<h4 id="hotspot的算法细节实现">HotSpot的算法细节实现
+</h4><h6 id="根节点枚举">根节点枚举
+</h6><p>我们以可达性分析算法中从GC Roots集合找引用链这个操作作为介绍虚拟机高效实现的第一个例子。
+固定可作为GC Roots的节点主要在全局性的引用（例如常量或类静态属性）与执行上下文（例如
+栈帧中的本地变量表）中。尽管目标明确，但查找过程要做到高效并非一件容易的事情。</p>
+<p>目前，所有收集器在根节点枚举这一步骤时都是必须暂停用户线程的，因此根节点枚举与之前提及的整理内存碎片一样会有“Stop The World”的困扰。</p>
+<p>现在可达性分析算法耗时最长的查找引用链的过程已经可以做到与用户线程一起并发，但根节点枚举始终还是必须在一个能保障一致性的快照中才得以进行。</p>
+<p>这里“一致性”的意思是整个枚举期间执行子系统看起来就像被冻结在某个时间点上，不会出现分析过程中，根节点集合的对象引用关系还在不断变化的情况。否则分析结果的准确性无法保证</p>
+<p>在HotSpot的解决方案里，是使用一组称为<strong>OopMap</strong>的数据结构来达到这个目的。
+<strong>一旦类加载动作完成的时候，HotSpot就会把对象内对应偏移量上的类型的数据计算出来，在即时编译过程中，也会在特定的位置记录下栈里和寄存器里哪些位置是引用</strong>。</p>
+<h6 id="安全点">安全点
+</h6><p>在OopMap的协助下，HotSpot可以快速准确地完成GC Roots枚举。
+但一个很现实的问题随之而来：可能导致引用关系变化，或者说导致OopMap内容变化的指令非常多。
+如果为每一条指令都生成对应的OopMap，那将会需要大量的额外存储空间，这样垃圾收集伴随而来的空间成本就会变得无法忍受的高昂。</p>
+<p>实际上HotSpot也并未对每条指令都生成OopMap，只是在“特定的位置”记录了这些信息，这些位置被称为安全点（Safepoint）。</p>
+<p><strong>安全点的选取</strong>
+有了安全点，因此用户程序执行时并非在任意位置都能停下来开始垃圾收集，而是强制要求必须执行到达安全点后才能够暂停。
+因此，安全点的选定既不能太少，会让收集器等待时间过长；也不能太多，这会增大运行时的内存负荷。</p>
+<p>安全点位置的选取基本上是以“是否具有让程序长时间执行的特征”为标准 进行选定的。</p>
+<p><strong>什么时候产生安全点：</strong>
+“长时间执行”的最明显特征就是指令序列的复用，例如方法调用、循环跳转、异常跳转 等都属于指令序列复用，所以只有具有这些功能的指令才会产生安全点。</p>
+<p><strong>如何跑到安全点</strong>
+如何在垃圾收集发生时让所有线程（这里其实不包括执行JNI调用的线程）都跑到最近的安全点，然后停顿下来？这里有两种方案可供选择：抢先式中断（Preemptive Suspension）和主动式中断（Voluntary Suspension）。</p>
+<p><strong>主动式中断</strong>
+主动式中断的思想是当垃圾收集需要中断线程的时候，不直接对线程操作，仅仅简单地设置一个标志位，各个线程执行过程时会不停地主动去轮询这个标志，一旦发现中断标志为真时就自己在最近的安全点上主动中断挂起。</p>
+<p>轮询标志的地方和安全点是重合的，另外还要加上所有创建对象和其他需要在Java堆上分配内存的地方，这是为了检查是否即将要发生垃圾收集，避免没有足够内存分配新对象。</p>
+<p>由于轮询操作在代码中会频繁出现，这要求它必须足够高效。
+HotSpot使用内存保护陷阱的方式，把轮询操作精简至只有一条汇编指令的程度。
+当需要暂停用户线程时，虚拟机把对应的内存页设置为不可读，那线程执行到test指令时就会产生一个自陷异常信号，然后在预先注册的异常处理器中挂起线程实现等待，这样仅通过一条汇编指令便完成安全点轮询和触发线程中断了。</p>
+<p><strong>最后说下抢先式</strong>，抢先式中断不需要线程的执行代码主动去配合，是系统介入，但现在几乎没有虚拟机实现采用抢先式中断来暂停线程响应GC事件。</p>
+<p>适合插入安全点的地方：</p>
+<ul>
+<li>方法（栈帧）结束前，但并不意味着一个方法只能有一个安全点</li>
+<li>非计数循环末尾，避免循环体执行时间太长，导致长时间无法到达安全点</li>
+<li>每条Java编译后的字节码边界</li>
+</ul>
+<h6 id="安全区域">安全区域
+</h6><p>安全区域可以理解是对安全点的存在问题的补充，上边说到线程会执行到附近的安全点停下来等待垃圾回收器介入处理，但如果线程没有执行呢，换句话就是说没有获得cpu执行权，比如某一个线程正在sleep或者等待磁盘输入，那么这个线程是不会走到安全点挂起自己的。</p>
+<p>这个时候就要引入安全区概念了，顾名思义，安全区就是一段指令域，在这个域中的指令不会对当前内存中的引用造成修改，当线程进入该区域后，会主动将自己的状态标记为“进入安全区”，这个时候如果发生gc，垃圾回收器发现该线程处于安全区域内，认为该线程不会对内存安全造成影响，便会跳过该线程，不会等待该线程到达安全点。
+而线程在到达安全区边界时，同样也会检查当前gc是否在工作，如果gc正在工作，这个时候线程便会主动停下来，等待gc动作完成后再继续执行。</p>
+<p>虽然在一些特殊情况下，我们需要等待线程从休眠状态醒来才能进入安全点，但是通过使用安全区域，我们可以在更多的地方使线程响应停止-世界，从而提高JVM的性能和响应性。</p>
+<h6 id="记忆集和卡集">记忆集和卡集
+</h6><p>记忆集是用来避免把整个老年代加进GC Roots扫描范围,事实上并不是只有新生代和老年代存在跨代引用这个问题</p>
+<p>记忆集是一种用来记录从非收集区域指向指向收集区域的指针集合的抽象数据结构,这个结构把老年代划分为若干个小块，标识出老年代哪一块内存会存在跨代引用。当发生 Minor GC 时，只有包含了跨代引用的小块内存中的老年代对象才会加入到 GC Roots 扫描中，避免整个老年代加入到 GC Roots 中。</p>
+<p>收集器只需要通过记忆集判断出某一块非收集区域是否存在有指向了收集区域的指针就可以了，并不需要了解这些跨代指针的全部细节。那设计者在实现记忆集的时候，便可以选择更为粗犷的记录粒度来节省记忆集的存储和维护成本，下面列举了一些可供选择（当然也可以选择这个范围以外的）的记录精度：</p>
+<ul>
+<li>字长精度：每个记录精确到一个机器字长（就是处理器的寻址位数，如常见的32位或64位，这个精度决定了机器访问物理内存地址的指针长度），该字包含跨代指针。</li>
+<li>对象精度：每个记录精确到一个对象，该对象里有字段含有跨代指针。</li>
+<li>卡精度：每个记录精确到一块内存区域，该区域内有对象含有跨代指针。</li>
+</ul>
+<p>第三种精度的实现方式就是卡表,卡表和记忆集的关系就像接口和实现类一样</p>
+<p>HotSpot虚拟机定义的卡表只是一个字节数组。以下这行代码是HotSpot默认的卡表标记逻辑：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">CARD_TABLE</span><span class="w"> </span><span class="o">[</span><span class="k">this</span><span class="w"> </span><span class="n">address</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">9</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">0</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="https://i-blog.csdnimg.cn/blog_migrate/6fc3a0d2a24fadf2adf44f820b63b500.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>一个卡页的内存中通常包含不止一个对象，只要卡页内有一个（或更多）对象的字段存在跨代指针，就将对应卡表的数组元素的值标识为 1，称为该元素变脏（Dirty），若无则标识为 0,在垃圾收集发生时,只要筛选出卡表中变脏的元素,就能轻易得出哪些卡页内存块中包含跨代指针,把它们加入GC Root</p>
+<h6 id="写屏障">写屏障
+</h6><p>我们已经解决了如何使用记忆集来缩减GC Roots扫描范围的问题,但还没有解决卡表元素如何维护的问题</p>
+<p>写屏障（Write Barrier）可以看做在虚拟机层面对“引用类型字段赋值”动作的 AOP 切面，赋值前的写屏障称为“写前屏障（Pre-Write Barrier）”，赋值后的写屏障称为“写后屏障（Post-Write Barrier）”。</p>
+<p>应用写屏障后，虚拟机会为所有赋值操作生成相应的指令，一旦收集器在写屏障中增加了更新卡表操作，无论更新的是不是老年代对新生代的引用，每次只要对引用进行更新，就会产生额外的开销。</p>
+<h6 id="伪共享问题">伪共享问题
+</h6><p>缓存一致性协议在计算机中针对的最小单元：缓存行，每个缓存行的大小是64字节，一串连续的64字节数据都会存储到缓存行中。</p>
+<p>假设数据A和数据B在同一缓存行中，CPU1修改了数据A，根据缓存一致性协议，CPU1会通知其他CPU这一行的缓存数据已经失效。此时CPU2想要修改数据B，但是缓存行已经失效了，所以需要重新从主内存中读取数据，然后重新写会缓存行中。这样缓存的优势就完全没有了。</p>
+<p>上述问题就是伪共享的场景，如果同时有多个CPU同时修改同一缓存行的数据，频繁回写主内存，会大大降低性能。</p>
+<p><strong>解决方案</strong></p>
+<ul>
+<li>
+<p>伪共享的根源就是不同的数据缓存到了同一缓存行中，如果我们能把独立的数据都单独存储到不同的缓存行，那么伪共享的问题也就不存在了。</p>
+</li>
+<li>
+<p>缓存行填充：当我们存储的数据不足64字节的时候，我们可以手动将余下的字节空间填充，以空间换时间的方式，解决伪共享。</p>
+</li>
+</ul>
+<p>为了解决伪共享问题,不采用无条件的写屏障,而是先检查卡表标志,只有当该卡表元素未被标记过时才将其标记未变脏</p>
+<h6 id="并发的可达性分析">并发的可达性分析
+</h6><p>可达性分析算法理论上要求全过程都基于一个能保障一致性的快照中才能进行分析，这意味着必须全程冻结用户线程（Stop The World）。</p>
+<p>为什么必须在一个能保证一致性的快照上才能进行对象图的遍历呢？</p>
+<ol>
+<li>
+<p>如果用户线程是冻结的，没问题。</p>
+</li>
+<li>
+<p>若用户线程没冻结，也就是用户线程与收集器并发工作呢？收集器在对象图标记，同时用户线程在修改引用关系（修改对象图的结构），这样可能出现两种后果：</p>
+</li>
+<li>
+<ol>
+<li>把原本消亡的对象错误标记为存活，这种情况虽不好（产生了浮动垃圾），但还可以容忍。</li>
+<li>把原本存活的对象标记为消亡，这就很严重了，程序肯定会因此报错。</li>
+</ol>
+</li>
+</ol>
+<p>当且仅当两种情况下同时满足会产生对象消失的问题</p>
+<ul>
+<li>赋值器插入一条或多条从黑色对象到白色对象的新引用</li>
+<li>赋值器删除了全部从灰色对象到该白色对象的直接或者间接引用</li>
+</ul>
+<p>两种方案解决:</p>
+<ul>
+<li>增量更新:针对新增的引用，将其记录下来等待遍历，即增量更新</li>
+<li>原始快照:如果期间发生变化，则可以记录起来，保证标记依然按照原本的视图来。</li>
+</ul>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2023 - 
+        
+        2025 zjx
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/zjx.github.io/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

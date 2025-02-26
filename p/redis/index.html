@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="Redis 特征:\n键值型:value支持多种不同数据结构,功能丰富 单线程,每个命令具有原子性 低延迟,速度快(基于内存,io多路复用,良好的编码) 支持数据持久化 支持主从集群,分片集群 支持多语言客户端 数据结构 redis是一个key-value的数据库,key一般是string类型,不过value的类型多种多样\n">
+<title>Redis</title>
+
+<link rel='canonical' href='https://zzjjjjjjx/zjx.github.io/p/redis/'>
+
+<link rel="stylesheet" href="/zjx.github.io/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="Redis">
+<meta property='og:description' content="Redis 特征:\n键值型:value支持多种不同数据结构,功能丰富 单线程,每个命令具有原子性 低延迟,速度快(基于内存,io多路复用,良好的编码) 支持数据持久化 支持主从集群,分片集群 支持多语言客户端 数据结构 redis是一个key-value的数据库,key一般是string类型,不过value的类型多种多样\n">
+<meta property='og:url' content='https://zzjjjjjjx/zjx.github.io/p/redis/'>
+<meta property='og:site_name' content='张佳熙'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2023-07-17T14:09:41&#43;08:00'/><meta property='article:modified_time' content='2023-07-17T14:09:41&#43;08:00'/>
+<meta name="twitter:title" content="Redis">
+<meta name="twitter:description" content="Redis 特征:\n键值型:value支持多种不同数据结构,功能丰富 单线程,每个命令具有原子性 低延迟,速度快(基于内存,io多路复用,良好的编码) 支持数据持久化 支持主从集群,分片集群 支持多语言客户端 数据结构 redis是一个key-value的数据库,key一般是string类型,不过value的类型多种多样\n">
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/zjx.github.io/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/zjx.github.io/img/avatar_hu_a18561f8df22b413.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">😄</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/zjx.github.io">张佳熙</a></h1>
+            <h2 class="site-description">啊啊啊啊啊</h2>
+        </div>
+    </header><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/zjx.github.io/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+                    
+                        <li id="i18n-switch">  
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                            <select name="language" title="language" onchange="window.location.href = this.selectedOptions[0].value">
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/en/" >English</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/" selected>简体中文</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/ar/" >عربي</option>
+                                
+                            </select>
+                        </li>
+                    
+                
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li>
+      <ol>
+        <li>
+          <ol>
+            <li><a href="#数据结构">数据结构</a></li>
+            <li><a href="#redis的常用命令">redis的常用命令</a></li>
+            <li><a href="#string类型">String类型</a></li>
+            <li><a href="#key的层级结构"><strong>Key的层级结构</strong></a></li>
+            <li><a href="#hash类型">Hash类型</a></li>
+            <li><a href="#list类型">List类型</a></li>
+            <li><a href="#set类型">Set类型</a></li>
+            <li><a href="#sortedset类型">SortedSet类型</a></li>
+            <li><a href="#jedis的使用">jedis的使用</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/zjx.github.io/p/redis/">Redis</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-07-17</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="redis">Redis
+</h1><p>特征:</p>
+<ul>
+<li>键值型:value支持多种不同数据结构,功能丰富</li>
+<li>单线程,每个命令具有原子性</li>
+<li>低延迟,速度快(基于内存,io多路复用,良好的编码)</li>
+<li>支持数据持久化</li>
+<li>支持主从集群,分片集群</li>
+<li>支持多语言客户端</li>
+</ul>
+<h4 id="数据结构">数据结构
+</h4><p>redis是一个key-value的数据库,key一般是string类型,不过value的类型多种多样</p>
+<div class="table-wrapper"><table>
+  <thead>
+      <tr>
+          <th>String                           hello world</th>
+          <th></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Hash                             {name:&ldquo;zjx&rdquo;,age:21}</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>List                                    [A-&gt;B-&gt;C-&gt;C-&gt;]</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>Set                                    {A,B,C}</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>SortedSet                         {A:1,B:2,C:3}</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>GED                            {A:(120.3,30.5)}</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>BitMap                             0110110101110101011</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td>HyperLog                         0110110101110101011</td>
+          <td></td>
+      </tr>
+      <tr>
+          <td></td>
+          <td></td>
+      </tr>
+  </tbody>
+</table></div>
+<h4 id="redis的常用命令">redis的常用命令
+</h4><ul>
+<li>keys :查看符合模板的所有key</li>
+<li>del 删除指定的一个或者多个key(如果多个key中存在不存在的key值则只删除存在的key)</li>
+<li>exists :判断key是否存在</li>
+<li>expire :给一个key设置有效期,有效性到期时该key会被自动删除</li>
+<li>ttl 查看还剩多少存在时间(-1代表永久有效)</li>
+</ul>
+<h4 id="string类型">String类型
+</h4><p>string类型,也就是字符串类型,是redis中最简单的储存类型</p>
+<p>其value是字符串,不过根据字符串的格式不同,又可以分为3类</p>
+<ul>
+<li>
+<p>string:普通字符串类型</p>
+</li>
+<li>
+<p>int:整数类型,可以做自增,自减操作</p>
+</li>
+<li>
+<p>float:浮点类型 ,可以做自增,自减操作</p>
+<p>不管是哪种格式,底层都是字节数组形式存储,只不过是编码方式不同.字符串类型的最大空间不能超过512m</p>
+</li>
+</ul>
+<p>string类型的常见命令</p>
+<ul>
+<li>set:添加和修改键值对</li>
+<li>get:根据key值获取value</li>
+<li>mset:批量添加键值对</li>
+<li>mget:批量根据key值查询value</li>
+<li>incr:让一个整形的key自增1</li>
+<li>incrby:让一个整形的key自增指定步长</li>
+<li>incrbyflaot让一个浮点型的数字自增并指定步长</li>
+<li>setnx:添加一个string类型的键值对,前提是这个key不存在,否则不执行</li>
+<li>setex:添加一个string类型的键值对,并且指定有效期</li>
+</ul>
+<h4 id="key的层级结构"><strong>Key的层级结构</strong>
+</h4><p>redis的key允许多个单词形成层级接口,多个单词之间用:隔开,格式如下:</p>
+<p>​                           项目名:业务名:类型:id</p>
+<p>这个格式也并非固定的,也可以根据自己的需求来删除或增加词条</p>
+<h4 id="hash类型">Hash类型
+</h4><p>Hash类型,也叫散列,其value是一个无序字典,类似于java中的HashMap结构</p>
+<p>string结构是将对象序列化为json字符串后储存,当需要修改对象某个字段时不方便</p>
+<p>Hash类型的常用命令有:</p>
+<ul>
+<li>hset key field value :添加或者修改hash类型key的field的值</li>
+<li>hget key field</li>
+<li>hmset :批量添加多个hash类型key的field的值</li>
+<li>hmget:批量获取多个hash类型key的field值</li>
+<li>hgetall:获取一个hash类型的key中的所有field和value</li>
+<li>hkeys :获取一个hash类型的key中的所有filed</li>
+<li>hvals:获取一个hash类型的key的key中的所有value</li>
+<li>hincrby:让一个hash类型key的字段值自增并指定步长</li>
+<li>hsetnx:添加一个hash类型的key的filed值,前提是这个field不存在,否则不执行</li>
+</ul>
+<h4 id="list类型">List类型
+</h4><p>redis中的list和java中的linkedList类似,可以看作一个双向链表结构.既可以支持正向检索也可以支持反向检索</p>
+<p>特征和linkendlist类似:</p>
+<ul>
+<li>有序</li>
+<li>元素可以重复</li>
+<li>插入和删除快</li>
+<li>查询速度一般</li>
+</ul>
+<p>lpush key element&hellip;:向列表左侧插入以一个或多个元素</p>
+<p>lpop key: 移除并返回列表左侧的第一个元素,没有则返回nil</p>
+<p>rpush key element..:向列表右端插入一个或多个元素</p>
+<p>rpop key:移除并返回右端的第一个元素</p>
+<p>lrange key star end: 返回一段角标的所有元素</p>
+<p>blpop和brpop :在指定时间内进行  和上面相似,只不过没有元素时等待指定时间,而不是直接返回nil</p>
+<p>llen key:获取list的长度</p>
+<p>lindex :获取指定索引的元素</p>
+<h4 id="set类型">Set类型
+</h4><p>redis的set结构于java中的hashset类似,可以看作一个value位bull的hashmap,应为也是一个hash表,因此具备于hashset类似的特性</p>
+<ul>
+<li>
+<p>无序</p>
+</li>
+<li>
+<p>元素不可重复</p>
+</li>
+<li>
+<p>查找快</p>
+</li>
+<li>
+<p>支持交集,并集,差集等新功能</p>
+<p>sadd key member..:向set中增加一个或者多个元素</p>
+<p>srem key member..:移除set中的指定元素</p>
+<p>scard key 返回set中元素的个数</p>
+<p>sismember key memeber  :判断一个元素是否存在于set中</p>
+<p>smembers :获取set的所有元素</p>
+<p>sinter key1 key:求交集</p>
+<p>sdiff key1 key2 求差集(key1中key2没有的)</p>
+<p>sunion key1 key2 求并集</p>
+</li>
+</ul>
+<h4 id="sortedset类型">SortedSet类型
+</h4><p>redis的sortedset是一个可排序的set集合,和java中的treeset类似,但底层数据结构却差别很大,sortedset中的没一个元素都带有一个score属性,可以基于score属性对元素排序,底层的实现是一个跳表加hash表(排序的命令z后面加个rev是降序)</p>
+<ul>
+<li>
+<p>可排序</p>
+</li>
+<li>
+<p>元素不重复</p>
+</li>
+<li>
+<p>查询速度快</p>
+<p>zadd key score member..:添加一个或者多个sortedset,如果已经存则更更新其score值</p>
+<p>zrem key member :删除sorted set中的一个指定元素</p>
+<p>zscore key member :获取集合中的指定元素的score值</p>
+<p>zrank key member :获取集合中指定元素的排名</p>
+<p>zcard key: 获取集合中的元素个数</p>
+<p>zcount key min max 统计score值在给定范围内的所有元素的个数</p>
+<p>zincrby key increment memeber :让指定元素增长指定步长</p>
+<p>zrange key min max 按照score排序后,获取指定排名范围内的元素</p>
+<p>zrangebyscore key min max:按照score排序后,获取指定score范围内的元素</p>
+<p>zdiff zinter zunion 求差集,交集,并集</p>
+</li>
+</ul>
+<h4 id="jedis的使用">jedis的使用
+</h4><p>连接redis数据库,然后使用jedis对象去执行命令</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">Jedis</span><span class="w"> </span><span class="n">jedis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Jedis</span><span class="p">(</span><span class="s">&#34;39.106.44.184&#34;</span><span class="p">,</span><span class="n">6379</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">jedis</span><span class="p">.</span><span class="na">auth</span><span class="p">(</span><span class="s">&#34;123456&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">jedis</span><span class="p">.</span><span class="na">select</span><span class="p">(</span><span class="n">0</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>jedis的配置</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Bean</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="n">Jedis</span><span class="w"> </span><span class="nf">jedis</span><span class="p">(){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">JedisPoolConfig</span><span class="w"> </span><span class="n">jedisPoolConfig</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">JedisPoolConfig</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">jedisPoolConfig</span><span class="p">.</span><span class="na">setMinIdle</span><span class="p">(</span><span class="n">0</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">jedisPoolConfig</span><span class="p">.</span><span class="na">setMaxIdle</span><span class="p">(</span><span class="n">8</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">jedisPoolConfig</span><span class="p">.</span><span class="na">setMaxTotal</span><span class="p">(</span><span class="n">8</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">JedisPool</span><span class="w"> </span><span class="n">jedisPool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">JedisPool</span><span class="p">(</span><span class="n">jedisPoolConfig</span><span class="p">,</span><span class="s">&#34;39.106.44.184&#34;</span><span class="p">,</span><span class="n">6379</span><span class="p">,</span><span class="n">1000</span><span class="p">,</span><span class="s">&#34;123456&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="k">return</span><span class="w">   </span><span class="n">jedisPool</span><span class="p">.</span><span class="na">getResource</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>redisTemplate的两种序列化实践方案</p>
+<p>方案一:</p>
+<p>自定义配置redisTemplate</p>
+<p>redisTemplate配置</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Configuration</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">RedisConfig</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Bean</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">RedisTemplate</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">redisTemplate</span><span class="p">(</span><span class="n">RedisConnectionFactory</span><span class="w"> </span><span class="n">redisConnectionFactory</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">RedisTemplate</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">template</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">RedisTemplate</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">template</span><span class="p">.</span><span class="na">setConnectionFactory</span><span class="p">(</span><span class="n">redisConnectionFactory</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Jackson2JsonRedisSerializer</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">objectJackson2JsonRedisSerializer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Jackson2JsonRedisSerializer</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Object</span><span class="p">.</span><span class="na">class</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">ObjectMapper</span><span class="w"> </span><span class="n">objectMapper</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ObjectMapper</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">objectMapper</span><span class="p">.</span><span class="na">setVisibility</span><span class="p">(</span><span class="n">PropertyAccessor</span><span class="p">.</span><span class="na">ALL</span><span class="p">,</span><span class="w"> </span><span class="n">JsonAutoDetect</span><span class="p">.</span><span class="na">Visibility</span><span class="p">.</span><span class="na">ANY</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">objectMapper</span><span class="p">.</span><span class="na">activateDefaultTyping</span><span class="p">(</span><span class="n">LaissezFaireSubTypeValidator</span><span class="p">.</span><span class="na">instance</span><span class="p">,</span><span class="n">ObjectMapper</span><span class="p">.</span><span class="na">DefaultTyping</span><span class="p">.</span><span class="na">NON_FINAL</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">objectJackson2JsonRedisSerializer</span><span class="p">.</span><span class="na">setObjectMapper</span><span class="p">(</span><span class="n">objectMapper</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">template</span><span class="p">.</span><span class="na">setKeySerializer</span><span class="p">(</span><span class="n">RedisSerializer</span><span class="p">.</span><span class="na">string</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">template</span><span class="p">.</span><span class="na">setHashKeySerializer</span><span class="p">(</span><span class="n">RedisSerializer</span><span class="p">.</span><span class="na">string</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">template</span><span class="p">.</span><span class="na">setValueSerializer</span><span class="p">(</span><span class="n">objectJackson2JsonRedisSerializer</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">template</span><span class="p">.</span><span class="na">setHashValueSerializer</span><span class="p">(</span><span class="n">objectJackson2JsonRedisSerializer</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">template</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>方案二:</p>
+<ol>
+<li>使用stringRedisTemplate</li>
+<li>写入redis时,手动把对象序列化位json</li>
+<li>读取redis时,手动把读取的json反序列化位对象</li>
+</ol>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2023 - 
+        
+        2025 zjx
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/zjx.github.io/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

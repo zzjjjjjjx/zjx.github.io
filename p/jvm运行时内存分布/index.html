@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="@TOC\njvm运行时数据区 线程隔离也就是线程不共享的意思\njava8内存结构图:\n程序计数器: 程序计数器（Program Counter Register）是一块较小的内存空间，它可以看作是当前线程所执行的字节码的行号指示器。 在Java虚拟机的概念模型里，字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，它是程序控制流的指示器，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。\n">
+<title>JVM运行时内存分布</title>
+
+<link rel='canonical' href='https://zzjjjjjjx/zjx.github.io/p/jvm%E8%BF%90%E8%A1%8C%E6%97%B6%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83/'>
+
+<link rel="stylesheet" href="/zjx.github.io/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="JVM运行时内存分布">
+<meta property='og:description' content="@TOC\njvm运行时数据区 线程隔离也就是线程不共享的意思\njava8内存结构图:\n程序计数器: 程序计数器（Program Counter Register）是一块较小的内存空间，它可以看作是当前线程所执行的字节码的行号指示器。 在Java虚拟机的概念模型里，字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，它是程序控制流的指示器，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。\n">
+<meta property='og:url' content='https://zzjjjjjjx/zjx.github.io/p/jvm%E8%BF%90%E8%A1%8C%E6%97%B6%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83/'>
+<meta property='og:site_name' content='张佳熙'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2023-11-26T14:09:41&#43;08:00'/><meta property='article:modified_time' content='2023-11-26T14:09:41&#43;08:00'/>
+<meta name="twitter:title" content="JVM运行时内存分布">
+<meta name="twitter:description" content="@TOC\njvm运行时数据区 线程隔离也就是线程不共享的意思\njava8内存结构图:\n程序计数器: 程序计数器（Program Counter Register）是一块较小的内存空间，它可以看作是当前线程所执行的字节码的行号指示器。 在Java虚拟机的概念模型里，字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，它是程序控制流的指示器，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。\n">
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/zjx.github.io/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/zjx.github.io/img/avatar_hu_a18561f8df22b413.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">😄</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/zjx.github.io">张佳熙</a></h1>
+            <h2 class="site-description">啊啊啊啊啊</h2>
+        </div>
+    </header><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/zjx.github.io/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+                    
+                        <li id="i18n-switch">  
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                            <select name="language" title="language" onchange="window.location.href = this.selectedOptions[0].value">
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/en/" >English</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/" selected>简体中文</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/ar/" >عربي</option>
+                                
+                            </select>
+                        </li>
+                    
+                
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li>
+      <ol>
+        <li>
+          <ol>
+            <li><a href="#程序计数器">程序计数器:</a></li>
+            <li><a href="#java虚拟机栈">java虚拟机栈:</a></li>
+            <li><a href="#堆">堆:</a></li>
+            <li><a href="#方法区">方法区:</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/zjx.github.io/p/jvm%E8%BF%90%E8%A1%8C%E6%97%B6%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83/">JVM运行时内存分布</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-11-26</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>@<a class="link" href="JVM%e8%bf%90%e8%a1%8c%e6%97%b6%e5%86%85%e5%ad%98%e5%88%86%e5%b8%83" >TOC</a></p>
+<p>jvm运行时数据区
+<img src="https://i-blog.csdnimg.cn/blog_migrate/ade155f5b1d78b6a3f2fea70fc6d39f9.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>线程隔离也就是线程不共享的意思</p>
+<p>java8内存结构图:</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/53f81aa9fabce553f06c052046ed09eb.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="image"
+	
+	
+></p>
+<h4 id="程序计数器">程序计数器:
+</h4><p><img src="https://i-blog.csdnimg.cn/blog_migrate/f78807fa1b79865d39b10b6ed90f6eed.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>程序计数器（Program Counter Register）是一块较小的内存空间，它可以看作是当前线程所执行的字节码的行号指示器。
+在Java虚拟机的概念模型里，字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，它是程序控制流的指示器，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。</p>
+<p>由于Java虚拟机的多线程是通过线程轮流切换、分配处理器执行时间的方式来实现的，在任何一个确定的时刻，一个处理（对于多核处理器来说是一个内核）都只会执行一条线程中的指令。因此，为了线程切换后能恢复到正确的执行位置，每条线程都需要有一个独立的程序计数器，各条线程之间计数器互不影响，独立存储，我们称这类内存区域为“线程私有”的内存。</p>
+<p>如果线程正在执行的是一个Java方法，这个计数器记录的是正在执行的虚拟机字节码指令的地址；如果正在执行的是本地（Native）方法，这个计数器值则应为空（Undefined）</p>
+<p>解释:当JVM将字节码文件读取到内存的时候,每一条字节码指令都用自己的内存区域,由于JVM的多线程是通过线程轮流切换的,当它从另一个线程的指令切换过来的时候,要继续执行当前线程的命令,此时就需要程序计数器来记录当前线程下一条执行的字节码文件的内存地址</p>
+<p>解答:为什么执行native方法,计数器为空?</p>
+<p>因为执行native方法时,java是通过调用jvm中的JNI来调用本地的c/c++库中的方法,这个方法不是java实现的,就不会产生相应的 字节码文件,并且c/c++执行时内存分配是由自己语言决定的</p>
+<p>唯一一个无OOM的区域是什么?</p>
+<p>无OOM就是没有内存溢出异常(OutOfMemoryError),在编译时已经确定该线程代码的偏移量最大值,根据该最大偏移量可以分配内存空间,在线程运行时，只改变程序计数器的值，不涉及空间的扩展,所以不会存在空间不够用的情况。</p>
+<p>因为<strong>java虚拟机规范了程序计数器是没有内存溢出的区域</strong></p>
+<h4 id="java虚拟机栈">java虚拟机栈:
+</h4><p>1.概述:</p>
+<p>由于跨平台性的设计，Java的指令都是根据栈来设计的。不同平台CPU架构不同，所以不能设计为基于寄存器的。优点是跨平台，指令集是8位对齐，编译器容易实现，缺点是性能下降，实现同样的功能需要更多的指令。Java虚拟机栈（Java Virtual Machine Stack），早期也叫Java栈。每个线程在创建时都会创建一个虚拟机栈，其内部保存一个个的栈帧（Stack Frame），对应着一次次的Java方法调用，是线程私有的。生命周期和线程一致，<strong>作用：主管Java程序的运行，它保存方法的局部变量、部分结果，并参与方法的调用和返回</strong>。</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/020448b65aa9d211ffb63dcbf70e7338.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>该区域存在OutOfMemoryError异常,StackOverflowError异常;</p>
+<p>栈溢出的原因:</p>
+<p>java虚拟机规定允许栈的大小是动态的或者固定不变的</p>
+<ul>
+<li>
+<p>如果采用固定大小的虚拟机栈,每个线程的java虚拟机栈容量可以在线程创建的时候独立选定,如果线程请求分配的栈容量超过java虚拟机栈允许的最大容量,java虚拟机会抛出一个<strong>StackOverflowError</strong>;</p>
+</li>
+<li>
+<p>如果Java虚拟机栈可以动态扩展，并且尝试扩展时无法申请到足够的内存，会抛出<strong>OutOfMemoryError</strong>（注意HotSpot虚拟机的栈容量是不可以动态扩展的）</p>
+</li>
+</ul>
+<h5 id="栈帧">栈帧:
+</h5><p>栈帧一般包括局部变量表,操作数栈,方法返回地址,动态链接,一些附加信息这五部分</p>
+<ol>
+<li>
+<p>局部变量表:</p>
+<p>局部变量表所需的容量大小是在java源码编译期（即java代码被编译成Class文件时）确定下来的，并保存在方法的Code属性的maximum local variables数据项中。在方法运行期间不会改变局部变量表的大小的, 定义为一个数字数组,</p>
+<p>包括三种数据类型:8种基本数据类型+引用数据类型+returnAddress类型(指向下一条字节码指令的地址),</p>
+<p>如果当前栈帧是由构造方法或者实例方法(非static修饰的方法,静态方法中不能使用this)创建的那么该对象引用的this将会放在局部变量表index=0的位置,其余参数按照参数表顺序继续排列.</p>
+<p>注:</p>
+<ul>
+<li>局部变量表中的槽位是可以重复利用的,如果一个局部变量过了其作用域,那么在其作用域之后申明的新的局部变量就很有可能复用过期局部变量的槽位,从而达到节省资源的目的</li>
+<li>局部变量表中的变量也是重要的垃圾回收根节点,只要被局部变量表直接或间接引用的对象都不会被回收</li>
+</ul>
+<p>2.操作数栈:</p>
+<p>a.在方法执行过程中,根据字节码指令,往栈中写入数据或提取数据,即入栈(push)/出栈(pop).某些字节码指令将值压入操作数栈,其余操作指令将操作数取出栈.使用它们后再把结果压入栈(出栈入栈由执行引擎执行).</p>
+<p>b.操作数栈主要用于保存运算过程中的的中间结果,同时作为计算过程中变量的临时的存储空间.操作数栈就是JVM执行引擎的一个工作区,当一个方法开始执行的时候,一个新的栈帧也会随之被创建出来,此时这个方法的操作数栈是空的.每一个操作数栈都会拥有一个明确的栈深度用于存储数值,其所需最大深度在编译期就定义好了,保存在方法的Code属性中,位max_stack的值.栈中的任一元素都可为任意Java类型(32bit的类型占用一个栈单位深度,64bit的类型占两个栈单位深度).操作数栈并非采用访问索引的方式来进行数据访问的,而是只能通过标准的入栈(push)和出栈(pop)操作来完成一次数据访问.如果被调用的方法有返回值,其返回值将会被压入当前栈帧的操作数栈中,并更新PC寄存器中下一条需要执行的字节码指令.操作数栈中元素的数据类型必须与字节码指令的序列严格匹配,这由编译器在编译期间进行验证,在类加载过程中的类检验阶段的数据流分析阶段要再次验证.Java虚拟机的解释执行引擎被称为&quot;基于栈的执行引擎&quot;,里面的栈就是操作数栈.</p>
+<p>3.动态链接:</p>
+<p><strong>动态链接 方法返回地址 一些附加信息被叫做帧数据区</strong></p>
+<p>每一个栈帧内部都包含一个指向运行时常量池中该栈帧所属方法的引用。包含这个引用的目的就是为了支持当前方法的代码能够实现动态链接（Dynamic Linking）。比如：invokedynamic指令</p>
+<p>在Java源文件被编译到字节码文件中时，所有的变量和方法引用都作为符号引用（Symbolic Reference）保存在class文件的常量池里。比如：描述一个方法调用了另外的其他方法时，就是通过常量池中指向方法的符号引用来表示的，那么动态链接的作用就是为了将这些符号引用转换为调用方法的直接引用。</p>
+<p>为什么需要常量池?</p>
+<p>字节码文件中需要很多数据的支持,但数据很大,不能直接保存到字节码文件中,所有常量池的作用就是为了提供一些符号喝常量,便于指令的识别</p>
+<h5 id="方法的调用解析和分派">方法的调用:解析和分派
+</h5><p>在jvm中,将符号引用转换为调用方法的直接引用与方法的绑定机制相关</p>
+<h6 id="静态链接">静态链接:
+</h6><p>当一个字节码文件被装载进JVM内部时，如果被调用的目标方法在编译期可知，且运行期保持不变时，这种情况下降调用方法的符号引用转换为直接引用的过程称之为静态链接</p>
+<h6 id="动态链接">动态链接:
+</h6><p>如果被调用的方法在编译期无法被确定下来，只能够在程序运行期将调用的方法的符号转换为直接引用，由于这种引用转换过程具备动态性，因此也被称之为动态链接。</p>
+<h6 id="早期绑定">早期绑定
+</h6><p>早期绑定就是指被调用的目标方法如果在编译期可知，且运行期保持不变时，即可将这个方法与所属的类型进行绑定，这样一来，由于明确了被调用的目标方法究竟是哪一个，因此也就可以使用静态链接的方式将符号引用转换为直接引用。</p>
+<h6 id="晚期绑定">晚期绑定
+</h6><p>如果被调用的方法在编译期无法被确定下来，只能够在程序运行期根据实际的类型绑定相关的方法，这种绑定方式也就被称之为晚期绑定。</p>
+</li>
+</ol>
+<h5 id="虚方法和非虚方法">虚方法和非虚方法
+</h5><p>如果方法在编译期就确定了具体的调用版本,这个版本在运行是不可变的,这样的方法被称为非虚方法.静态方法、私有方法、final方法、实例构造器、父类方法都是非虚方法.其他方法称为虚方法.虚拟机调用方法普通调用指令如下:</p>
+<ol>
+<li>invokeStatic 调用静态方法.解析阶段确定唯一方法版本.</li>
+<li>invokespecial 调用<init>方法、私有及父类方法.解析阶段确定唯一方法版本.</li>
+<li>invokevirtual 调用所有虚方法以及final方法.</li>
+<li>invokeinterface 调用接口方法</li>
+</ol>
+<p>动态调用指令:</p>
+<p>5.invokedynamic 动态解析出需要调用的方法并执行.使用Lamda表达式时会使用该指令</p>
+<h5 id="分派">分派:
+</h5><p>在面向对象的编程中,会很频繁的使用到动态分派(存在继承关系的对象,在确定具体调用方法的版本的时候可能需要迭代往上找确定的方法版本,直到找到为止),如果每次动态分派的过程中都要重新在类的方法元数据中搜索合适的目标的话就可能影响执行效率.因此为了提高性能,JVM采用在类的方法区建立一个需方发表(virtual method table)(非虚方法不会出现在表中)来实现,使用索引表来代替查找.每个类中都有虚方法表,表中存放着方法的实际入口.虚方发表会在类的加载的链接阶段被创建并初始化,类的变量初始值准备完成之后,JVM会把该类的虚方法表也初始完毕.</p>
+<h5 id="方法返回地址">方法返回地址:
+</h5><p>方法退出后,必须返回到最初方法被调用时的位置,方法才能继续执行,方法返回时可能需要在栈帧中保存一些信息,用来帮助恢复它的上层主调方法的执行状态.一般来说,方法正常退出时,主调方法的PC计数器的值就可以作为返回地址(此地址就保存在方法返回地址中),栈帧中很可能会这个计数器值.而方法异常退出时,返回地址是要通过异常处理器表来确定的,栈帧中一般不会保存这部分信息.</p>
+<h5 id="附加信息">附加信息
+</h5><p>Java虚拟机规范允许虚拟机实现增加一些规范里没有描述的信息到栈帧中.例如与调试、性能收集相关信息.</p>
+<h4 id="堆">堆:
+</h4><h6 id="堆的特点">堆的特点:
+</h6><ol>
+<li>堆内存的大小是在jvm启动时可以指定的,但通常是在运行时动态分配的,这意味着堆内存可以根据程序的需要动态增长或缩小,以容纳新创建的对象</li>
+<li>堆的存储在物理上是不连续的,但是在逻辑上是连续的</li>
+<li>虽然堆是线程共有的,但是可以划分线程私有缓存区</li>
+<li>对象和数组都不会存储在栈上,栈帧中保存的是引用,这个引用指向的是对象或者数组在堆中的位置,<strong>字符串池和类的静态变量放入java 堆中</strong></li>
+<li>在方法结束后,堆的对象不会立马被清除,仅仅只会在垃圾收集的时候才被移除</li>
+<li>堆是垃圾回收的重点区域</li>
+</ol>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/bdc211232dac78a549baca760f0a84b3.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>新生代的垃圾回收;</p>
+<p>所有类都是在伊甸园被new出来的,当伊甸园的空间用完时,程序有需要创建对象,JVM的垃圾回收器将堆伊甸园进行垃圾回收,</p>
+<p>将伊甸园中不再被其他对象所引用的对象进行销毁,然后将伊甸园中剩余对象移动到幸存0区,若幸存0区也满了,再对该区进行垃圾回收,然后移动到1区,如果一区也满了,再移动到养老区,若养老区也满了,就会产生(fullGC),进行养老区的内存清理</p>
+<p><strong>首先,当Eden区满的时候会触发第一次GC,把还活着的对象拷贝到From</strong>区,<strong>当Eden区再次触发GC的时候会扫描Eden区和From区域,对这两个区域进行垃圾回收,经过这次回收后还存活的对象,则直接复制到To区域</strong>(如果有对象的年龄已经达到了老年的标准,则赋值到老年代区),<strong>同时把这些对象的年龄+1</strong>,<strong>然后,清空Eden和From区中的对象,也即复制之后有交换</strong>,<strong>谁空谁是to</strong>最后,<strong>To区和From区互换</strong>,<strong>原To区成为下一次GC时的From区</strong>。<strong>部分对象会在From区和To区域中复制来复制去,如此交换15次(次数可以调节)最终如果还是存活,就存入到老年代</strong></p>
+<ul>
+<li>Minor GC ： 清理年轻代</li>
+<li>Major GC ： 清理老年代</li>
+<li>Full GC ： 清理整个堆空间，包括年轻代和永久代</li>
+<li></li>
+</ul>
+<p>将对象根据存活概率进行分类，对存活时间长的对象，放到固定区，从而减少扫描垃圾时间及GC频率。针对分类进行不同的垃圾回收算法，对算法扬长避短</p>
+<p><strong>为什么分代?</strong></p>
+<p>jdk8后变化,元空间取代了永久代,元空间使用本地内存(系统内存),永久代使用虚拟机堆中内存</p>
+<p><strong>为什么废除永久代?</strong></p>
+<p>永久代很难调整,其中类的元数据信息在每次fullFC的时候可能被收集,但成绩很难令人满意(回收效率偏低),</p>
+<p>给永久代分配多大的空间很难确定,因为永久代的大小依赖很多因素,比如JVM加载的class总数,常量池的大小,方法的大小,内存经常不够用发生内存泄漏</p>
+<p>MinorGc的过程就是:复制-&gt;清空-&gt;互换 在年轻代中使用的是MinorGC,这种GC采用的是复制算法</p>
+<h4 id="方法区">方法区:
+</h4><p><img src="https://i-blog.csdnimg.cn/blog_migrate/f0307c78244040cd7a88e399e9b91b4c.jpeg"
+	
+	
+	
+	loading="lazy"
+	
+		alt="img"
+	
+	
+></p>
+<p>方法区的基本理解:</p>
+<ol>
+<li>方法区的大小决定了系统可以保存多少个类,如果系统定义了太多的类,导致方法区移除,虚拟机同意会抛出内存溢出错误</li>
+<li>方法区被各个线程共享</li>
+<li>大小可以固定也可以是动态扩展的</li>
+<li>物理内存可以不连续</li>
+</ol>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/36b6e5105a527de0cfa0bdf2d2248b73.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="img"
+	
+	
+></p>
+<p>存储内容:</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/0ac542f0ebbd361c21a2ab2d9332a8f2.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="img"
+	
+	
+></p>
+<p><strong>字符串常量池为什么放到堆中?</strong>
+因为永久代的回收效率很低,在full gc的时候才会触发,而full gc是老年代的内存不足,永久代的内存不足才会触发的</p>
+<p>这就导致回收效率不高,而我们开发中会有大量的字符串被创建,回收效率低,导致永久代内存不足,放到堆中能及时回收</p>
+<h6 id="类型信息">类型信息
+</h6><p>对每个加载的类型（ 类class、接口interface、枚举enum、注解annotation），JVM必 .须在方法区中存储以下类型信息：</p>
+<ul>
+<li>这个类型的完整有效名称（全名=包名.类名）</li>
+<li>这个类型直接父类的完整有效名（对于interface或是java. lang.Object，都没有父类）</li>
+<li>这个类型的修饰符（public， abstract， final的某个子集）</li>
+<li>这个类型直接接口的一个有序列表</li>
+</ul>
+<h6 id="域信息成员变量">域信息（成员变量）
+</h6><ul>
+<li>JVM必须在方法区中保存类型的所有域的相关信息以及域的声明顺序。</li>
+<li>域的相关信息包括：域名称、 域类型、域修饰符（public， private， protected， static， final， volatile， transient的某个子集）</li>
+</ul>
+<h6 id="运行时常量池">运行时常量池
+</h6><ul>
+<li>运行时常量池主要存放在类加载后被解析的字面量与符号引用,但不止这些</li>
+<li></li>
+<li>运行时常量池具备动态性,可以添加数据,比较多的使用就是String的intern()方法</li>
+</ul>
+<h6 id="non-final的类变量">non-final的类变量
+</h6><ul>
+<li>静态变量和类关联在一起，随着类的加载而加载，他们成为类数据在逻辑上的一部分</li>
+<li>类变量被类的所有实例所共享，即使没有类实例你也可以访问它。</li>
+</ul>
+<h6 id="方法信息">方法信息:
+</h6><ul>
+<li>
+<p>方法名称</p>
+</li>
+<li>
+<p>方法的返回类型（或void）</p>
+</li>
+<li>
+<p>方法参数的数量和类型（按顺序）</p>
+</li>
+<li>
+<p>方法的修饰符（public， private， protected， static， final， synchronized， native ， abstract的一个子集）</p>
+</li>
+<li>
+<p>方法的字节码（bytecodes）、操作数栈、局部变量表及大小（ abstract和native 方法除外）</p>
+</li>
+<li>
+<p>异常表（ abstract和native方法除外:每个异常处理的开始位置、结束位置、代码处理在程序计数器中的偏移地址、被捕获的异常类的常量池索引</p>
+</li>
+</ul>
+<h6 id="直接内存">直接内存
+</h6><p>直接内存位于本地内存，不属于JVM内存，但是也会在物理内存耗尽的时候报OOM,所以也讲一下。</p>
+<p>在jdk1.4中加入了NIO（New Input/Putput）类，引入了一种基于通道（channel）与缓冲区（buffer）的新IO方式，它可以使用native函数直接分配堆外内存，然后通过存储在java堆中的DirectByteBuffer对象作为这块内存的引用进行操作，这样可以在一些场景下大大提高IO性能，避免了在java堆和native堆来回复制数据。</p>
+<p><strong>方法区的垃圾回收:</strong></p>
+<p>一般来说这个区域的回收效果比较难令人满意,尤其是类的卸载,条件相当苛刻,但是这部分区域的回收有时又确实是必要的</p>
+<p>方法区的垃圾收集主要回收两部分:常量池中废弃的常量和不再使用的类型</p>
+<p>判断一个类是否还在使用的条件:</p>
+<ul>
+<li>
+<p>该类所有的实例都已经被回收，也就是Java堆中不存在该类及其任何派生子类的实例。</p>
+</li>
+<li>
+<p>加载该类的类加载器已经被回收，这个条件除非是经过精心设计的可替换类加载器的场景，如OSGi、JSP的重加载等，否则通常是很难达成的。</p>
+</li>
+<li>
+<p>该类对应的java.lang.Class对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法。</p>
+<p>Java虚拟机被允许对满足上述三个条件的无用类进行回收，这里说的仅仅是“被允许”，而并不是和对象一样，没有引用了就必然会回收。</p>
+</li>
+</ul>
+<p>废弃的常量和不再使用的类型</p>
+<p>判断一个类是否还在使用的条件:</p>
+<ul>
+<li>
+<p>该类所有的实例都已经被回收，也就是Java堆中不存在该类及其任何派生子类的实例。</p>
+</li>
+<li>
+<p>加载该类的类加载器已经被回收，这个条件除非是经过精心设计的可替换类加载器的场景，如OSGi、JSP的重加载等，否则通常是很难达成的。</p>
+</li>
+<li>
+<p>该类对应的java.lang.Class对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法。</p>
+<p>Java虚拟机被允许对满足上述三个条件的无用类进行回收，这里说的仅仅是“被允许”，而并不是和对象一样，没有引用了就必然会回收。</p>
+</li>
+</ul>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2023 - 
+        
+        2025 zjx
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/zjx.github.io/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="索引是什么?\n索引是帮助mysql高效获取数据的数据结构(有序)\n优点:提高数据检索的效率,降低数据库的io成本,通过索引列对数据进行排序,降低排序的成本,降低cpu的消耗\n">
+<title>Mysql索引</title>
+
+<link rel='canonical' href='https://zzjjjjjjx/zjx.github.io/p/mysql%E7%B4%A2%E5%BC%95/'>
+
+<link rel="stylesheet" href="/zjx.github.io/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="Mysql索引">
+<meta property='og:description' content="索引是什么?\n索引是帮助mysql高效获取数据的数据结构(有序)\n优点:提高数据检索的效率,降低数据库的io成本,通过索引列对数据进行排序,降低排序的成本,降低cpu的消耗\n">
+<meta property='og:url' content='https://zzjjjjjjx/zjx.github.io/p/mysql%E7%B4%A2%E5%BC%95/'>
+<meta property='og:site_name' content='张佳熙'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2024-05-19T14:09:41&#43;08:00'/><meta property='article:modified_time' content='2024-05-19T14:09:41&#43;08:00'/>
+<meta name="twitter:title" content="Mysql索引">
+<meta name="twitter:description" content="索引是什么?\n索引是帮助mysql高效获取数据的数据结构(有序)\n优点:提高数据检索的效率,降低数据库的io成本,通过索引列对数据进行排序,降低排序的成本,降低cpu的消耗\n">
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/zjx.github.io/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/zjx.github.io/img/avatar_hu_a18561f8df22b413.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">😄</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/zjx.github.io">张佳熙</a></h1>
+            <h2 class="site-description">啊啊啊啊啊</h2>
+        </div>
+    </header><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/zjx.github.io/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+                    
+                        <li id="i18n-switch">  
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                            <select name="language" title="language" onchange="window.location.href = this.selectedOptions[0].value">
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/en/" >English</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/" selected>简体中文</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/ar/" >عربي</option>
+                                
+                            </select>
+                        </li>
+                    
+                
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li>
+      <ol>
+        <li>
+          <ol>
+            <li><a href="#索引结构">索引结构:</a></li>
+          </ol>
+        </li>
+        <li><a href="#为什么选择使用btree索引结构">为什么选择使用B+tree索引结构？</a>
+          <ol>
+            <li><a href="#索引分类">索引分类:</a></li>
+            <li><a href="#索引语法">索引语法</a></li>
+            <li><a href="#sql性能分析">sql性能分析:</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/zjx.github.io/p/mysql%E7%B4%A2%E5%BC%95/">Mysql索引</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2024-05-19</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>索引是什么?</p>
+<blockquote>
+<p>索引是帮助mysql高效获取数据的数据结构(有序)</p>
+<p>优点:提高数据检索的效率,降低数据库的io成本,通过索引列对数据进行排序,降低排序的成本,降低cpu的消耗</p>
+<p>缺点:索引列也是要占用空间的,索引大大提高了提高了查询效率,同时却也降低了更新表的速度</p></blockquote>
+<p>索引结构分类:</p>
+<p>B+tree索引</p>
+<p>Hash索引 通过hash表实现,只能实现精确匹配查询才有效,不支持范围查询</p>
+<p>R-tree空间索引      空间索引是MYISAM的一种特殊索引类型,主要用于地理空间数据类型,通常使用较少</p>
+<p>Full-text全文索引     是一种通过建立倒排索引,快速匹配文档的方式,类似于LUcene,SOlr,Es</p>
+<p>b树:</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/19a327f93ba094e67b3a267fba33e833.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>b+树</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/78c401c74bb20d20f10f918e4c837eef.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/4b42e5bc773a8f8cea129840fd9f7db0.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>为什么InnoDB存储引擎选择使用B+tree索引结构?</p>
+<p>相对于二叉树,层级更少,搜索效率高</p>
+<p>对于b树来说,无论是叶子节点还是非叶子节点,都会保留数据,这样导致一页中存储的键值减少,指针跟着减少,要同意保存大量数据,只能增加树的高度,导致性能降低</p>
+<h4 id="索引结构">索引结构:
+</h4><div class="table-wrapper"><table>
+  <thead>
+      <tr>
+          <th>索引结构</th>
+          <th>描述</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>B+Tree索引</td>
+          <td>最常见索引类型,大部分都支持</td>
+      </tr>
+      <tr>
+          <td>hash索引</td>
+          <td>底层用hash表实现的,不支持范围查询</td>
+      </tr>
+      <tr>
+          <td>R-tree</td>
+          <td>空间索引是mylsam引擎的一个特殊索引类型,主要用于地理空间数据类型</td>
+      </tr>
+      <tr>
+          <td>full-text</td>
+          <td>是一种倒排索引,快速匹配文档的方式</td>
+      </tr>
+  </tbody>
+</table></div>
+<h3 id="为什么选择使用btree索引结构">为什么选择使用B+tree索引结构？
+</h3><p>相对于二叉树，层级更少，搜索效率高；</p>
+<p>对于B-tree，无论是叶子节点还是非叶子节点，都会保存数据，这样导致一页中存储的键值减少，指针跟着减少，要同样保存大量数据，只能增加树的高度，导致性能降低;</p>
+<p>相对Hash索引l，B+tree支持范围匹配及排序操作;</p>
+<h4 id="索引分类">索引分类:
+</h4><ul>
+<li>主键索引:针对表中主键创建的索引,默认自动创建,只能有一个</li>
+<li>唯一索引: 避免同一个表中某数据列中的值重复</li>
+<li>常规索引: 快速定位特定数据</li>
+<li>全文索引: 全文索引查找的是文本中的关键词,而不是比较索引中的值</li>
+</ul>
+<p>在InnoDB下根据索引的存储形式,又可以分为以下两种:</p>
+<ul>
+<li><strong>聚集索引</strong>   将数据存储与索引放到一块,索引结构的叶子节点保存了行数据 <strong>(必须有,而且只能有一个)</strong></li>
+</ul>
+<p>选取规则:</p>
+<p>如果存在主键,主键索引就是聚集索引,如果不存在,将使用第一个唯一索引作为聚集索引</p>
+<p>如果表中没有主键或者合适的唯一索引,则InnoDB会自动生成一个rowid作为隐藏的聚集索引</p>
+<ul>
+<li><strong>二级索引</strong>     将数据和索引分开存储,索引结构的叶子节点关联的是对应的主键</li>
+</ul>
+<h4 id="索引语法">索引语法
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">create</span><span class="w"> </span><span class="p">(</span><span class="k">unique</span><span class="o">|</span><span class="n">fulltext</span><span class="p">)</span><span class="w"> </span><span class="k">index</span><span class="w"> </span><span class="n">index_name</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">table_name</span><span class="w"> </span><span class="p">(</span><span class="n">index_col_name</span><span class="p">)</span><span class="err">创建索引</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">show</span><span class="w"> </span><span class="k">index</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="k">table_name</span><span class="w"> </span><span class="err">查看索引</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">drop</span><span class="w"> </span><span class="k">index</span><span class="w"> </span><span class="n">index_name</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">table_name</span><span class="p">;</span><span class="w"> </span><span class="err">删除索引</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="sql性能分析">sql性能分析:
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">show</span><span class="w"> </span><span class="k">global</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="k">like</span><span class="w"> </span><span class="s1">&#39;Com_______&#39;</span><span class="w">  </span><span class="mi">7</span><span class="err">个下划线查看每种操作的次数</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">show</span><span class="w"> </span><span class="n">variables</span><span class="w"> </span><span class="k">like</span><span class="w"> </span><span class="s1">&#39;slow_query_log&#39;</span><span class="w"> </span><span class="err">查看慢查询日志是否开启</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">show</span><span class="w"> </span><span class="n">variables</span><span class="w"> </span><span class="k">like</span><span class="w"> </span><span class="s1">&#39;slow_query_log_file&#39;</span><span class="err">查看慢查询日志的位置</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">profile详情能够在做sql优化帮助我们了解</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">select</span><span class="w"> </span><span class="o">@@</span><span class="n">have_profiling</span><span class="p">;</span><span class="err">查看是否支持</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">show</span><span class="w"> </span><span class="n">profiles</span><span class="w"> </span><span class="err">查看每一条</span><span class="n">sql耗时的基本情况</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">show</span><span class="w"> </span><span class="n">profile</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">query</span><span class="w"> </span><span class="n">query_id</span><span class="w"> </span><span class="err">查看指定的</span><span class="n">query_id的sql语句各个阶段的耗时情况</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">show</span><span class="w"> </span><span class="n">profile</span><span class="w"> </span><span class="n">cpu</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">query</span><span class="w"> </span><span class="n">query_id查看cpu的使用情况</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>直接在sql语句前面加上explain</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/56ad8b210865b1e4d610cef612151a11.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>id : select查询的序列号,表示查询中执行的select子句或者操作表的顺序(id相同,执行顺序从上到下,id不同值越大越先执行</p>
+<p>select_type:表示select的类型,常见的取值有simple(简单表,即不使用表连接或者子查询),primary(主查询,即外层的查询),union(union中第二个或者后面的查询语句),subquery(select/where之后包含了子查询),derived包含在from子句中的子查询
+type: 表示连接类型,性能由好到查的连接类型为NULL,system,const(主键或者唯一索引),eq_ref,ref(用非唯一性的索引),range,index,all</p>
+<p>key: 实际使用的索引,如果为NULL,则没有使用索引</p>
+<p>key_len:表示索引使用的字节数,该值为索引字段最大可能长度,并非实际使用长度,在不损失精确性的前提下,长度越短越好</p>
+<p>row:mysql认为必须要执行查询的行数,在innodb引擎中是一个估计值,可能并不总是准确的</p>
+<p>filtered:表示返回结果的行数,占需读取行数的百分比,filtered的值越大越好</p>
+<p>extra:using index condition 查询使用了索引但是需要回表查询数据,using where ,using index 查询使用了索引,但是需要的数据都在索引列中能找到,所以不需要回表查询数据</p>
+<h5 id="索引的使用">索引的使用:
+</h5><p><strong>最左前缀法则:</strong></p>
+<p>如果索引了多列(联合索引),要遵守最左前缀法则,最左前缀法则指的是查询从索引的最左列开始,并不跳过索引中的列</p>
+<p>如果跳跃某一列,索引将部分失效(后面的字段索引失效)</p>
+<p><strong>注:mysql8之后优化器优化了最左前缀法则,可以进行跳跃</strong>,<strong>顺序也可以打乱</strong></p>
+<p><strong>索引列运算:</strong></p>
+<p>不要在索引列进行运算操作,索引将失效</p>
+<p><strong>字符串不加引号:</strong></p>
+<p>字符串类型字段使用时,不加引号,索引将失效</p>
+<p><strong>模糊查询</strong></p>
+<p>如果仅仅是尾部模糊匹配,索引不会失效,如果是头部模糊匹配,索引失效</p>
+<p><strong>or连接的条件:</strong></p>
+<p>用or分割开的条件,如果or前的条件中的列有索引,而后面的列中没有索引,那么涉及的索引都不会被用到</p>
+<p><strong>覆盖索引:</strong></p>
+<p>尽量使用覆盖索引(查询使用了索引,并且需要返回的列,在该索引中已经全部能够找到),减少select *就是<strong>减少回表操作</strong></p>
+<p><strong>前缀索引:</strong></p>
+<p>当前字段类型为字符串时,有时候需要索引很长的字符串,这会让索引变得很大,查询时,浪费大量的磁盘io,影响查询效率,</p>
+<p>此时可以只将字符串的一部分前缀,建立索引,这样可以大大节约索引空间,从而提高索引效率</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">create</span><span class="w"> </span><span class="k">index</span><span class="w"> </span><span class="err">名字</span><span class="w"> </span><span class="n">table名字</span><span class="p">(</span><span class="n">clomn</span><span class="p">(</span><span class="n">n</span><span class="p">))</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="索引下推">索引下推
+</h5><p>现在我们知道，对于联合索引（a, b），在执行 <code>select * from table where a &gt; 1 and b = 2</code> 语句的时候，只有 a 字段能用到索引，那在联合索引的 B+Tree 找到第一个满足条件的主键值（ID 为 2）后，还需要判断其他条件是否满足（看 b 是否等于 2），那是在联合索引里判断？还是回主键索引去判断呢？</p>
+<ul>
+<li>在 MySQL 5.6 之前，只能从 ID2 （主键值）开始一个个回表，到「主键索引」上找出数据行，再对比 b 字段值。</li>
+<li>而 MySQL 5.6 引入的<strong>索引下推优化</strong>（index condition pushdown)， <strong>可以在联合索引遍历过程中，对联合索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数</strong>。</li>
+</ul>
+<p>当你的查询语句的执行计划里，出现了 Extra 为 <code>Using index condition</code>，那么说明使用了索引下推的优化。</p>
+<h5 id="sql提示">Sql提示:
+</h5><p><strong>如果有满足多个索引的话,mysql会使用列多的那个索引</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="n">use</span><span class="w"> </span><span class="k">index</span><span class="p">()</span><span class="err">你用哪个索引</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">ignore</span><span class="w"> </span><span class="k">index</span><span class="p">()</span><span class="err">你不用哪个索引</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">force</span><span class="w"> </span><span class="k">index</span><span class="p">()</span><span class="err">你必须用这个索引</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="索引的设计原则">索引的设计原则
+</h5><p>1.针对于数据量较大，且查询比较频繁的表建立索引。</p>
+<p>2.针对于常作为查询条件（where）、排序（order by）、分组（group by）操作的字段建立索引l。</p>
+<p>3.尽量选择区分度高的列作为索引，尽量建立唯一索引，区分度越高，使用索引的效率越高。</p>
+<p>4.如果是字符串类型的字段，字段的长度较长，可以针对于字段的特点，建立前缀索引。</p>
+<p>5.尽量使用联合索引，减少单列索引，查询时，联合索引很多时候可以覆盖索引，节省存储空间，避免回表，提高查询效率。</p>
+<p>6.要控制索引的数量，索引并不是多多益善，索引越多，维护索引结构的代价也就越大，会影响增删改的效率。</p>
+<p>7.如果索引I列不能存储NULL值，请在创建表时使用NOTNULL约束它。当优化器知道每列是否包含NULL值时，它可以更好地确定哪个索引最有效地用于查询。</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2023 - 
+        
+        2025 zjx
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/zjx.github.io/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

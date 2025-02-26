@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="@TOC\nIO流 IO流用于读写文件中的数据,I:input O:output\n输出流是程序流向文件,输入流是文本流向\n他们都是抽象类,需要使用他们的实现类\nFilefOutputstream FilefInputstream\n他们在创建对象时会出现编译时异常,一定要进行异常声明\n">
+<title>IO流</title>
+
+<link rel='canonical' href='https://zzjjjjjjx/zjx.github.io/p/io%E6%B5%81/'>
+
+<link rel="stylesheet" href="/zjx.github.io/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="IO流">
+<meta property='og:description' content="@TOC\nIO流 IO流用于读写文件中的数据,I:input O:output\n输出流是程序流向文件,输入流是文本流向\n他们都是抽象类,需要使用他们的实现类\nFilefOutputstream FilefInputstream\n他们在创建对象时会出现编译时异常,一定要进行异常声明\n">
+<meta property='og:url' content='https://zzjjjjjjx/zjx.github.io/p/io%E6%B5%81/'>
+<meta property='og:site_name' content='张佳熙'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2023-03-03T14:09:41&#43;08:00'/><meta property='article:modified_time' content='2023-03-03T14:09:41&#43;08:00'/>
+<meta name="twitter:title" content="IO流">
+<meta name="twitter:description" content="@TOC\nIO流 IO流用于读写文件中的数据,I:input O:output\n输出流是程序流向文件,输入流是文本流向\n他们都是抽象类,需要使用他们的实现类\nFilefOutputstream FilefInputstream\n他们在创建对象时会出现编译时异常,一定要进行异常声明\n">
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/zjx.github.io/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/zjx.github.io/img/avatar_hu_a18561f8df22b413.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">😄</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/zjx.github.io">张佳熙</a></h1>
+            <h2 class="site-description">啊啊啊啊啊</h2>
+        </div>
+    </header><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/zjx.github.io/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+                    
+                        <li id="i18n-switch">  
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                            <select name="language" title="language" onchange="window.location.href = this.selectedOptions[0].value">
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/en/" >English</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/" selected>简体中文</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/ar/" >عربي</option>
+                                
+                            </select>
+                        </li>
+                    
+                
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#字节流">字节流</a></li>
+    <li><a href="#filefoutputstream">FilefOutputstream</a></li>
+    <li><a href="#filefinputstream">FilefInputstream</a>
+      <ol>
+        <li><a href="#read方法">read方法</a>
+          <ol>
+            <li><a href="#打印文件数据">打印文件数据</a></li>
+            <li><a href="#文件的拷贝">文件的拷贝</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li><a href="#try-catch异常">try catch异常</a></li>
+    <li><a href="#字符流">字符流</a></li>
+    <li><a href="#filereader">FileReader</a>
+      <ol>
+        <li><a href="#构造方法">构造方法</a></li>
+        <li><a href="#读取数据方法">读取数据方法</a></li>
+      </ol>
+    </li>
+    <li><a href="#filewriter">FileWriter</a>
+      <ol>
+        <li><a href="#构造方法-1">构造方法</a></li>
+        <li><a href="#写出数据方法">写出数据方法</a></li>
+      </ol>
+    </li>
+    <li><a href="#缓冲流">缓冲流</a>
+      <ol>
+        <li><a href="#字节缓冲流">字节缓冲流:</a></li>
+        <li><a href="#字符缓冲流">字符缓冲流</a></li>
+        <li><a href="#转换流">转换流</a></li>
+        <li><a href="#打印流">打印流</a>
+          <ol>
+            <li><a href="#字节打印流">字节打印流</a></li>
+            <li><a href="#字符打印流">字符打印流</a></li>
+          </ol>
+        </li>
+        <li><a href="#序列流">序列流</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/zjx.github.io/p/io%E6%B5%81/">IO流</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-03-03</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <p>@<a class="link" href="Io%e6%b5%81%e6%80%bb%e7%bb%93" >TOC</a></p>
+<h1 id="io流">IO流
+</h1><p>IO流用于读写文件中的数据,I:input    O:output</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/ae3ce1f8a0a66a94b6f378690efb0160.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>输出流是程序流向文件,输入流是文本流向</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/020686d38764fa342126e07514c2bc08.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>他们都是抽象类,需要使用他们的实现类</p>
+<p>FilefOutputstream   FilefInputstream</p>
+<p><strong>他们在创建对象时会出现编译时异常,一定要进行异常声明</strong></p>
+<h2 id="字节流">字节流
+</h2><h2 id="filefoutputstream">FilefOutputstream
+</h2><p>FilefOutputstream创建的时候需要抛出异常,异常是检验输进去的路径是否存在    创建对象时参数可以是字符串也可以是file对象,如果文件不存在会创建一个新的文件但要保证它的父级路径是存在的,如果父级路径不存在就会报错</p>
+<p>如果文件已经存在,文件内容就会被清空</p>
+<p>write方法可以添加数据,参数是int类型的表示的是ascll码值</p>
+<p>释放资源防止文件被占用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w">                      </span><span class="n">一次写一个字节数据</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="w"> </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w">                  </span><span class="n">一次写一个字节数组数据</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="kt">byte</span><span class="o">[]</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">off</span><span class="p">,</span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="p">)</span><span class="w">    </span><span class="n">一次写一个字节数组的部分数据</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>注:write()方法中len参数代表的是长度而不是终止索引</strong></p>
+<p>可以通过把想添加的内容用字符串表示,然后通过Arrays中的getByte()方法把字符串中的每个字符转化为ascll码值并返回一个byte数组,直接用write方法调用数组直接进行添加</p>
+<p>换行符\r\n(不能直接输入,还是要用ascll码值间接)</p>
+<p>如果要续写需要再创建对象的时候,写第二个参数true</p>
+<h2 id="filefinputstream">FilefInputstream
+</h2><p>FileInputSream在创建对象时参数是文件的路径,如果路径不存在直接报错</p>
+<p>读取数据的方法read(),一次是读一个字节的,读出来的是数据在ascll上对应的数字</p>
+<p>读到文件末尾了,read发()方法返回-1.空格也是数据</p>
+<p>read()方法一次只能读一个字节数据可以使用循环来读取文件的全部数据</p>
+<h3 id="read方法">read方法
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">read</span><span class="p">()</span><span class="w">                         </span><span class="n">一次读一个字节数据</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span><span class="w">            </span><span class="n">一次读一个字节数组数据</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>read(byte[] buffer)   方法的返回值int表示本次读取到了多少个数据</p>
+<p>具体读多少个字节数据跟数组的长度有关</p>
+<p>read(byte[] buffer)  在使用时如果数组的的长度小于文件数据的长度时进行了多次读取,那么最后一次读取数组的长度大于剩余数据长度,除了读取到剩余的数据意外数组中还含有上次1读取的数据,原因是数组读取数据后,下次读取的数据会对上次读取的数据进行覆盖,但最后文件剩余数据小于数组长度只能覆盖住一部分,打印该数组时会打印出未覆盖的元素</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/238d9c2ed810da725f4bb91899254f0e.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/c3a6d14216877007aabbddc885a1125f.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p>此时我们可以通过string(byte[],off,len)来指定打印长度</p>
+<h4 id="打印文件数据">打印文件数据
+</h4><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">FileInputStream</span><span class="w"> </span><span class="n">fis</span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">FileInputStream</span><span class="w"> </span><span class="p">(</span><span class="s">&#34;一个路径&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">int</span><span class="w"> </span><span class="n">b</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">while</span><span class="p">((</span><span class="n">b</span><span class="o">=</span><span class="n">fis</span><span class="p">.</span><span class="na">read</span><span class="p">())</span><span class="o">!=-</span><span class="n">1</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">((</span><span class="kt">char</span><span class="p">)</span><span class="n">b</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">fis</span><span class="p">.</span><span class="na">close</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>这里要定义一个变量b,通过打印b来间接打印文件数据</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">FileIntputStream</span><span class="w"> </span><span class="n">fis</span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">FileInputStream</span><span class="w"> </span><span class="p">(</span><span class="s">&#34;一个路径&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">int</span><span class="w"> </span><span class="n">b</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">while</span><span class="p">((</span><span class="n">b</span><span class="o">=</span><span class="n">fis</span><span class="p">.</span><span class="na">read</span><span class="p">())</span><span class="o">!=-</span><span class="n">1</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">fis</span><span class="p">.</span><span class="na">read</span><span class="p">();)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">fis</span><span class="p">.</span><span class="na">close</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>如果在打印函数中同样书写read()方法来进行打印,那么打印函数中的read方法会和while方法判断语句中的read方法一前一后轮流接着读取文件中的数据.参考迭代器中的next方法</strong></p>
+<h4 id="文件的拷贝">文件的拷贝
+</h4><p>代码如下:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">FileInputStream</span><span class="w"> </span><span class="n">fis</span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FileIntputStream</span><span class="p">(</span><span class="s">&#34;需要拷贝文件的路径&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">FilefOutputStream</span><span class="w"> </span><span class="n">fos</span><span class="w"> </span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">FilefOutputstream</span><span class="w"> </span><span class="p">(</span><span class="s">&#34;拷贝到新文件的路径&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">int</span><span class="w"> </span><span class="n">b</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">while</span><span class="p">((</span><span class="n">b</span><span class="o">=</span><span class="n">fis</span><span class="p">.</span><span class="na">read</span><span class="p">())</span><span class="o">!=-</span><span class="n">1</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">fos</span><span class="p">.</span><span class="na">write</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">fos</span><span class="p">.</span><span class="na">close</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">fis</span><span class="p">.</span><span class="na">close</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">FileInputStream</span><span class="w"> </span><span class="n">fis</span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FileIntputStream</span><span class="p">(</span><span class="s">&#34;需要拷贝文件的路径&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">FilefOutputStream</span><span class="w"> </span><span class="n">fos</span><span class="w"> </span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">FilefOutputstream</span><span class="w"> </span><span class="p">(</span><span class="s">&#34;拷贝到新文件的路径&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">bytes</span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="kt">byte</span><span class="o">[</span><span class="n">1024</span><span class="o">*</span><span class="n">1024</span><span class="o">*</span><span class="n">5</span><span class="o">]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nf">while</span><span class="p">((</span><span class="n">len</span><span class="o">=</span><span class="n">fis</span><span class="p">.</span><span class="na">read</span><span class="p">(</span><span class="n">bytes</span><span class="p">))</span><span class="o">!=-</span><span class="n">1</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">fos</span><span class="p">.</span><span class="na">write</span><span class="p">(</span><span class="n">bytes</span><span class="p">,</span><span class="n">0</span><span class="p">,</span><span class="n">len</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">fos</span><span class="p">.</span><span class="na">close</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">fis</span><span class="p">.</span><span class="na">close</span><span class="p">();</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>下面的代码上面的更快</p>
+<h2 id="try-catch异常">try catch异常
+</h2><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="w"> </span><span class="k">try</span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">   </span><span class="n">FilefOutputStream</span><span class="w"> </span><span class="n">fos</span><span class="w"> </span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">FilefOutputstream</span><span class="w"> </span><span class="p">(</span><span class="s">&#34;文件的路径&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="n">fos</span><span class="p">.</span><span class="na">write</span><span class="p">(</span><span class="n">97</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">fos</span><span class="p">.</span><span class="na">close</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"> </span><span class="p">}</span><span class="k">catch</span><span class="p">(</span><span class="n">IOException</span><span class="w"> </span><span class="n">e</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">     </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"> </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果我们这样写那么fos.close()前面出现异常时,会直接创建异常对象并跳到catch语句中,就无法释放资源,这时候我们可以用</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/640cf670b0aa745ddd3eada157f792ba.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p><u><em><strong>UTB-8中中文是用3个字节储存的且首位为1,英文是用1个字节储存的首位为0</strong></em></u></p>
+<p>JAVA中编码的方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w">  </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="nf">getBytes</span><span class="p">()</span><span class="w">                    </span><span class="n">使用默认方式进行编码</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w">  </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="nf">getBytes</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">charsetName</span><span class="p">)</span><span class="w">  </span><span class="n">使用指定方式进行编码</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>JAVA中解码的方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">String</span><span class="w"> </span><span class="p">(</span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">bytes</span><span class="p">)</span><span class="w">                        </span><span class="n">使用默认方式进行解码</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nf">String</span><span class="w"> </span><span class="p">(</span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">bytes</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">charsetName</span><span class="w"> </span><span class="p">)</span><span class="w">   </span><span class="n">使用指定方式进行解码</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="字符流">字符流
+</h2><p><img src="https://i-blog.csdnimg.cn/blog_migrate/4178bbd37edf9b5a63d66d41dca9a32e.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<h2 id="filereader">FileReader
+</h2><h3 id="构造方法">构造方法
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="nf">FileReader</span><span class="p">(</span><span class="n">File</span><span class="w"> </span><span class="n">file</span><span class="p">)</span><span class="w">                </span><span class="n">创建字符输入流关联本地文件</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="nf">Filereader</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">pathname</span><span class="p">)</span><span class="w">          </span><span class="n">创建字符输入流关联本地文件</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="读取数据方法">读取数据方法
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">read</span><span class="p">()</span><span class="w">                           </span><span class="n">读取单个数据</span><span class="p">,</span><span class="n">读到末尾返回</span><span class="o">-</span><span class="n">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="kt">char</span><span class="o">[]</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span><span class="w">              </span><span class="n">读取多个数据</span><span class="p">,</span><span class="n">读到末尾返回</span><span class="o">-</span><span class="n">1</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>按字节进行读取,遇见中文,一次读多个字节,读取后解码,返回一个整数(方法的底层会对所读取的字节二进制数进行解码并转化为十进制数,返回十进制数,这些十进制数也是字符集上的数,想看到这些内容就要进行强转)</p>
+<p>读到文件末尾了,read方法返回-1</p>
+<p>read的有参方法中包含了强制转换这一步,并将转换后的字符放到字符数组中</p>
+<h2 id="filewriter">FileWriter
+</h2><h3 id="构造方法-1">构造方法
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="nf">FileWrite</span><span class="p">(</span><span class="n">File</span><span class="w"> </span><span class="n">file</span><span class="p">)</span><span class="w">                       </span><span class="n">创建字符输出流关联本地文件</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="nf">FileWrite</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">pathname</span><span class="p">)</span><span class="w">                 </span><span class="n">创建字符输出流关联本地文件</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="nf">FileWrite</span><span class="p">(</span><span class="n">File</span><span class="w"> </span><span class="n">file</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">append</span><span class="p">)</span><span class="w">       </span><span class="n">创建字符输出流关联本地文件</span><span class="p">,</span><span class="n">续写</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="nf">FileWrite</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">pathname</span><span class="p">,</span><span class="kt">boolean</span><span class="w"> </span><span class="n">append</span><span class="p">)</span><span class="w">  </span><span class="n">创建字符输出流关联本地文件</span><span class="p">,</span><span class="n">续写</span><span class="w"> 
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="写出数据方法">写出数据方法
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w">                            </span><span class="n">写一个字符</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">)</span><span class="w">                       </span><span class="n">写一个字符串</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">,</span><span class="kt">int</span><span class="w"> </span><span class="n">off</span><span class="p">,</span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="p">)</span><span class="w">       </span><span class="n">写一个字符串的一部分</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="kt">char</span><span class="o">[]</span><span class="w"> </span><span class="n">cbuf</span><span class="p">)</span><span class="w">                      </span><span class="n">写出一个字符数组</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="kt">char</span><span class="o">[]</span><span class="w"> </span><span class="n">cbuf</span><span class="p">,</span><span class="kt">int</span><span class="w"> </span><span class="n">off</span><span class="p">,</span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="p">)</span><span class="w">      </span><span class="n">写出字符数组的一部分</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="缓冲流">缓冲流
+</h2><h3 id="字节缓冲流">字节缓冲流:
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="nf">BufferedInputStream</span><span class="p">(</span><span class="w"> </span><span class="n">InputStream</span><span class="w"> </span><span class="n">is</span><span class="p">)</span><span class="w">         </span><span class="n">将基本流包装为高级流提高读出数据性能</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="nf">BufferedOutputStream</span><span class="p">(</span><span class="w"> </span><span class="n">OutputStream</span><span class="w"> </span><span class="n">os</span><span class="w"> </span><span class="p">)</span><span class="w">      </span><span class="n">将基本流包装为高级流提高写出数据性能</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>原理:底层自带了胀肚为8192的缓冲区提高性能</p>
+<p>释放资源时不需要对字节流进行关闭,只需要关闭字节缓冲流,字节缓冲流的底层代码中有关闭字节流的代码</p>
+<h3 id="字符缓冲流">字符缓冲流
+</h3><p>构造方法和字节缓冲流类似</p>
+<p>特有的方法:</p>
+<p>​</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">readLine</span><span class="p">()</span><span class="w">  </span><span class="n">读取一行的数据</span><span class="p">,</span><span class="n">如果没有数据课读了就返回null</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">newLine</span><span class="p">()</span><span class="w">      </span><span class="n">跨平台的换行</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>new方法会判断你是什么平台然后弄相关的换行符</p>
+<p><strong>缓冲流为什么能提高性能:</strong></p>
+<p>1.缓冲流自带8192的字节数组缓冲区</p>
+<p>2.利用显著提高字节流的读写性能</p>
+<p>3.对于字节流提升并不明显,对于字符缓冲流而言关键点是两个特有的方法</p>
+<p>(字符流中也含有缓冲区)</p>
+<h3 id="转换流">转换流
+</h3><p>将字节流转换为字符流</p>
+<p>转换流是一种处理流，它可以将一种数据类型转换为另一种数据类型。</p>
+<p>它通常用于解决两个系统之间数据格式不兼容的问题。例如，在将字符串从一个系统传输到另一个系统时，转换流可以将字符串转换为二进制数据，并在接收系统中将其转换回字符串。</p>
+<p>转换流也可以用于将不同编码的字符串转换为另一种编码的字符串，或者将一种数据类型转换为另一种数据类型以便在程序中使用。</p>
+<p>总的来说，转换流允许我们在不同类型的数据之间转换和传输数据，使得不同的系统和应用程序能够进行交互。</p>
+<p>转换输入流InputStreamReader    转换输出流OutputStreamWriter</p>
+<p>字节流使用字符流中的方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">InputStreamReader</span><span class="w"> </span><span class="n">Isr</span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">InputStreamReader</span><span class="p">(</span><span class="n">Fileinputstream</span><span class="w"> </span><span class="n">file</span><span class="p">,</span><span class="n">String</span><span class="w">  </span><span class="n">charsname</span><span class="p">)</span><span class="w"> 
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">OutputStreamWriter</span><span class="w"> </span><span class="n">Isr</span><span class="o">=</span><span class="k">new</span><span class="w"> </span><span class="n">OutputStreamWriter</span><span class="p">(</span><span class="n">FileOutputstream</span><span class="w"> </span><span class="n">file</span><span class="p">,</span><span class="n">String</span><span class="w">   </span><span class="n">charsname</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="打印流">打印流
+</h3><p>打印流分为两类:printstream printwrite</p>
+<p>打印流只能操作文件的目的地,不操作数据源</p>
+<p>特有的方法可以实现,数据原样写出,特有的写出方,可以实现自动刷新自动换行</p>
+<h4 id="字节打印流">字节打印流
+</h4><h5 id="构造方法-2">构造方法
+</h5><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="nf">PrintStream</span><span class="p">(</span><span class="n">OutputStream</span><span class="w"> </span><span class="o">/</span><span class="n">File</span><span class="o">/</span><span class="n">String</span><span class="p">)</span><span class="w">                               </span><span class="n">关联字节输出流</span><span class="o">/</span><span class="n">文件</span><span class="o">/</span><span class="n">文件路径</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w">  </span><span class="nf">PrintStream</span><span class="p">(</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">filename</span><span class="p">,</span><span class="n">Charset</span><span class="w"> </span><span class="n">charset</span><span class="w"> </span><span class="p">)</span><span class="w">                      </span><span class="n">指定字符编码</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="nf">PrintStream</span><span class="p">(</span><span class="n">OutputStream</span><span class="p">,</span><span class="kt">boolean</span><span class="w"> </span><span class="n">autoflush</span><span class="p">)</span><span class="w">                          </span><span class="n">自动刷新</span><span class="w">  
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="nf">PrintStream</span><span class="p">(</span><span class="n">OutputStream</span><span class="p">,</span><span class="kt">boolean</span><span class="w"> </span><span class="n">autoflush</span><span class="p">,</span><span class="n">String</span><span class="w"> </span><span class="n">encoding</span><span class="p">)</span><span class="w">          </span><span class="n">指定字符编码且自动刷新</span><span class="w"> 
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>字节流是没有缓冲区的,开不开自动刷新都一样</p>
+<h5 id="成员方法">成员方法
+</h5><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w">                                                 </span><span class="n">将指定的字节打印出来</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">println</span><span class="p">(</span><span class="n">Xxx</span><span class="w"> </span><span class="n">xx</span><span class="p">)</span><span class="w">                                              </span><span class="n">打印任意数据</span><span class="p">,</span><span class="n">自动刷新</span><span class="p">,</span><span class="n">自动换行</span><span class="w">                                           
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">print</span><span class="p">(</span><span class="n">Xxx</span><span class="w"> </span><span class="n">xx</span><span class="p">)</span><span class="w">                                                </span><span class="n">打印任意数据</span><span class="p">,</span><span class="n">不换行</span><span class="w">                  
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">printf</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">format</span><span class="p">,</span><span class="n">Object</span><span class="p">....</span><span class="na">args</span><span class="w"> </span><span class="p">)</span><span class="w">                        </span><span class="n">带有占位符的打印语句</span><span class="p">,</span><span class="n">不换行</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>后三个方法可以实现数据的原样写出,是打印流特有的方法</p>
+<h4 id="字符打印流">字符打印流
+</h4><p>构造方法和成员变量与字节打印流基本相同</p>
+<h3 id="序列流">序列流
+</h3><p>序列流可以把Java中的对象写道本地文件中</p>
+<p>序列化流的构造方法和成员变量</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="nf">objectOutputStream</span><span class="p">(</span><span class="n">OutputStream</span><span class="w"> </span><span class="n">out</span><span class="p">)</span><span class="w">    </span><span class="n">把基本流包装为高级流</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">writeObject</span><span class="p">(</span><span class="n">Object</span><span class="w"> </span><span class="n">obj</span><span class="p">)</span><span class="w">      </span><span class="n">把对象序列化写到文件中</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用对象输出流保存到文件时会出现NotSerializableException异常</p>
+<p>解决方案:需要让javabean类实现Serializable接口,表明这个javabean类可以被序列化,这个接口没有内容是一个标记接口</p>
+<p>反序列化的构造方法和成员变量</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="nf">objecyInputStream</span><span class="p">(</span><span class="n">InputStream</span><span class="w"> </span><span class="n">out</span><span class="p">)</span><span class="w">     </span><span class="n">把基本流包装为高级流</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">readObject</span><span class="p">(</span><span class="n">Object</span><span class="w"> </span><span class="n">obj</span><span class="p">)</span><span class="w">      </span><span class="n">把序列化到文件的对象</span><span class="p">,</span><span class="n">读取到程序中</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>序列化流中如果教案javabean类内容发生改变,反序列化流就无法读取序列化到文件的对象,每一个javabean类都有一个版本号,我们可以通过声明一个固定的版本号防止版本号发生变化private static final  long serialVersionUID=版本号l</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2023 - 
+        
+        2025 zjx
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/zjx.github.io/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

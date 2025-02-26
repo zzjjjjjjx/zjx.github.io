@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="Spring IOC和AOP :1.Spring是轻量级的开源的JavaEE框架\n2.Spring可以解决企业应用开发的复杂性\n3.Spring有两个核心部分:IOC和Aop\n">
+<title>Spring IOC和AOP</title>
+
+<link rel='canonical' href='https://zzjjjjjjx/zjx.github.io/p/spring-ioc%E5%92%8Caop/'>
+
+<link rel="stylesheet" href="/zjx.github.io/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css"><meta property='og:title' content="Spring IOC和AOP">
+<meta property='og:description' content="Spring IOC和AOP :1.Spring是轻量级的开源的JavaEE框架\n2.Spring可以解决企业应用开发的复杂性\n3.Spring有两个核心部分:IOC和Aop\n">
+<meta property='og:url' content='https://zzjjjjjjx/zjx.github.io/p/spring-ioc%E5%92%8Caop/'>
+<meta property='og:site_name' content='张佳熙'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:published_time' content='2023-04-16T14:09:41&#43;08:00'/><meta property='article:modified_time' content='2023-04-16T14:09:41&#43;08:00'/>
+<meta name="twitter:title" content="Spring IOC和AOP">
+<meta name="twitter:description" content="Spring IOC和AOP :1.Spring是轻量级的开源的JavaEE框架\n2.Spring可以解决企业应用开发的复杂性\n3.Spring有两个核心部分:IOC和Aop\n">
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/zjx.github.io/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/zjx.github.io/img/avatar_hu_a18561f8df22b413.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">😄</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/zjx.github.io">张佳熙</a></h1>
+            <h2 class="site-description">啊啊啊啊啊</h2>
+        </div>
+    </header><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/zjx.github.io/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/zjx.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+                    
+                        <li id="i18n-switch">  
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M4 5h7" />
+  <path d="M9 3v2c0 4.418 -2.239 8 -5 8" />
+  <path d="M5 9c-.003 2.144 2.952 3.908 6.7 4" />
+  <path d="M12 20l4 -9l4 9" />
+  <path d="M19.1 18h-6.2" />
+</svg>
+
+
+
+                            <select name="language" title="language" onchange="window.location.href = this.selectedOptions[0].value">
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/en/" >English</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/" selected>简体中文</option>
+                                
+                                    <option value="https://zzjjjjjjx/zjx.github.io/ar/" >عربي</option>
+                                
+                            </select>
+                        </li>
+                    
+                
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li>
+      <ol>
+        <li>
+          <ol>
+            <li></li>
+            <li><a href="#注解">注解:</a></li>
+            <li><a href="#aop">AOP:</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/zjx.github.io/p/spring-ioc%E5%92%8Caop/">Spring IOC和AOP</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2023-04-16</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="spring-ioc和aop">Spring IOC和AOP
+</h1><p>:1.Spring是轻量级的开源的JavaEE框架</p>
+<p>2.Spring可以解决企业应用开发的复杂性</p>
+<p>3.Spring有两个核心部分:IOC和Aop</p>
+<p>IOC:控制反转,把创建对象过程交给Spring进行管理</p>
+<p>Aop:面向切面,不修改源代码进行功能增强</p>
+<p>4.Spring的特点</p>
+<p>​               1.方便解耦,简化开发</p>
+<p>​				2.Aop编程支持</p>
+<p>​				3.方便程序测试</p>
+<p>​				4.方便和其他框架进行整合</p>
+<p>​				5.方便进行事务操作</p>
+<p>​				6.降低API开发难度</p>
+<h5 id="ioc容器">IOC容器:
+</h5><p>IOC是控制反转的简写</p>
+<p>1.控制反转,把对象创建和对象之间的调用过程,交给spring进行管理</p>
+<p>2.使用IOC的目的:为了降低耦合度</p>
+<p>IOC的底层原理</p>
+<p>xml解析,工厂模式,反射</p>
+<p>[外链图片转存失败,源站可能有防盗链机制,建议将图片保存下来直接上传(img-0R9xeagn-1681616394864)(C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20230415082118093.png)]</p>
+<p>IOC(接口)</p>
+<p>1.IOC思想基于IOC容器完成的底层就是对象工厂</p>
+<p>2.Spring提供IOC容器实现的两种方式:(两个接口)</p>
+<p>(1)BeanFactory:IOC容器基本实现,是Spring内部的使用接口,不提供开发人员进行使用</p>
+<p>加载配置文件时候不会创建对象,在获取对象(使用)才会去创建对象</p>
+<p>(2)ApplicationContext:BeanFactory的子接口,提供更多强大的功能,一般由开发人员进行使用</p>
+<p>加载配置文件时候就会把配置文件对象进行创建</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/7df41ad85d5fdb71c56e4ebf3803d845.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<p><strong>重要的实现类 FileSystemXmlApplicationContext使用的xml路径要求是绝对路径</strong></p>
+<p><strong>ClassPathXmlApplicationContext使用的xml文件路径要求是相对路径</strong></p>
+<h6 id="ioc操作bean管理">IOC操作Bean管理
+</h6><p>(1)Spring创建对象 (2)Spring 注入属性</p>
+<p>两种实现方式:1.通过配置文件实现</p>
+<p>注入方式DI(依赖注入),是IOC的一种具体</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"></code></pre></td></tr></table>
+</div>
+</div><p>实现 支持set方法注入和有参方法注入</p>
+<p>使用相应方法时一定要有相关的set方法或者构造方法,否则会报错</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;user&#34;</span> <span class="na">class=</span><span class="s">&#34;Test.User&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;name&#34;</span> <span class="na">value=</span><span class="s">&#34;张三&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;age&#34;</span> <span class="na">value=</span><span class="s">&#34;18&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/bean&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">   <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;teacher&#34;</span> <span class="na">class=</span><span class="s">&#34;Test.Teacher&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;constructor-arg</span> <span class="na">index=</span><span class="s">&#34;0&#34;</span><span class="err">/(</span><span class="na">name=</span><span class="s">&#34;&#34;</span><span class="err">)</span> <span class="na">value=</span><span class="s">&#34;赵四&#34;</span><span class="nt">&gt;&lt;/constructor-arg&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;constructor-arg</span> <span class="na">index=</span><span class="s">&#34;1&#34;</span><span class="err">/(</span><span class="na">name=</span><span class="s">&#34;&#34;</span><span class="err">)</span> <span class="na">value=</span><span class="s">&#34;26&#34;</span><span class="nt">&gt;&lt;/constructor-arg&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/bean&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><property>表现表示的是属性,它使用的是set方法注入并先通过无参构造来进行创建再调用set方法注入属性值,一定要用相关属性的set方法</p>
+<p><constructor-arg>标签表示使用有参方法来进行直接注入属性创建对象,使用的是有参的构造方法来进行创建的,可以使用name=&ldquo;&ldquo;来书写相应的属性值名称,也可以使用index来调用相应构造方法参数的顺序来进行赋值,一定要有相应的构造方法</p>
+<p>通过p名称来进行配置</p>
+<p>[外链图片转存失败,源站可能有防盗链机制,建议将图片保存下来直接上传(img-m4Ml8HVx-1681616394864)(C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20230415090851925.png)]</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">    <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;teacher&#34;</span> <span class="na">class=</span><span class="s">&#34;Test.Teacher&#34;</span> <span class="na">p:age=</span><span class="s">&#34;18&#34;</span> <span class="na">p:name=</span><span class="s">&#34;张三&#34;</span> <span class="nt">&gt;&lt;/bean&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>注入null值</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;name&#34;</span> <span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">   <span class="nt">&lt;null&gt;&lt;/null&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/property&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>注入喊特殊符合的字面量要么使用转义字符</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;name&#34;</span> <span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">   <span class="nt">&lt;value</span> <span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">     <span class="cp">&lt;![CDATA[]]&gt;</span>
+</span></span><span class="line"><span class="cl">   <span class="nt">&lt;/value&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/property&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>要不使用CDATA</p>
+<h6 id="外部注入">外部注入:
+</h6><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;teacher&#34;</span> <span class="na">class=</span><span class="s">&#34;Test.Teacher&#34;</span>  <span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;name&#34;</span> <span class="na">value=</span><span class="s">&#34;张三&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;age&#34;</span> <span class="na">value=</span><span class="s">&#34;26&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;student&#34;</span> <span class="na">ref=</span><span class="s">&#34;student&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/bean&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;student&#34;</span> <span class="na">class=</span><span class="s">&#34;Test.User&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;name&#34;</span> <span class="na">value=</span><span class="s">&#34;赵四&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;age&#34;</span> <span class="na">value=</span><span class="s">&#34;18&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/bean&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h6 id="内部注入">内部注入:
+</h6><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;teacher&#34;</span> <span class="na">class=</span><span class="s">&#34;Test.Teacher&#34;</span>  <span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;name&#34;</span> <span class="na">value=</span><span class="s">&#34;张三&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;age&#34;</span> <span class="na">value=</span><span class="s">&#34;26&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;student&#34;</span> <span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">&#34;student&#34;</span> <span class="na">class=</span><span class="s">&#34;Test.User&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;name&#34;</span> <span class="na">value=</span><span class="s">&#34;赵四&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#34;age&#34;</span> <span class="na">value=</span><span class="s">&#34;18&#34;</span><span class="nt">&gt;&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/bean&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/property&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/bean&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>普通bean你在配置文件中配置那种bean类型,就返回什么类型</p>
+<p>工厂bean 在配置文件定义的bean类型和返回的类型不一样</p>
+<p>工厂bean步骤:1.创建类,让这个类作为工厂bean,是实现接口FactoryBean</p>
+<p>​						 2.实现接口中的方法,在实现方法中定义返回的bean类型</p>
+<p>然后在重写的getObject方法中定义返回的bean类型</p>
+<p>注:使用工厂类时,使用getBean方法时,要填写的时你在getObject方法中定义的返回类型</p>
+<h5 id="bean的作用域">bean的作用域:
+</h5><p>在Spring里面,默认情况下,bean是单实例对象</p>
+<p>如何设置是单实例还是多实例:在bean标签中有属性scope用于设置单实例还是多实例</p>
+<p>scope属性值:1.默认值是singleton 表示是单实例对象 2.第二个值 prototype 表示是多实例对象,request和session是创建完之后放到request和session的共享域中(在web项目中才会用这两个值)</p>
+<p>singleton和prototype 的区别:</p>
+<p>scope值是singleton时,加载spring配置文件的时候就会创建单实例对象,</p>
+<p>scope值是prototype的时候,不是在加载spring配置文件的时候创建对象,在调用getBean方法的时候创建多实例对象</p>
+<h5 id="bean的生命周期">bean的生命周期:
+</h5><p>1.通过构造器创建bean实例(无参数构造)</p>
+<p>2.为bean的属性设置值和对其他的bean引用(调用set方法)</p>
+<p>3.把bean的实例传递给bean的后置处理器</p>
+<p>4.调用bean的初始化的方法(需要进行配置初始化的方法)</p>
+<p>5.把bean的实例传递给bean的后置处理器</p>
+<p>6.bean可以使用了(对象获取到了)</p>
+<p>7.当容器关闭时候,调用bean的销毁方法(需要进行配置销毁的方法)</p>
+<p>bean的后置处理器实现接口BeanPostProcessor,对你在配置文件创建的bean实例都起到作用</p>
+<h5 id="bean自动装配">bean自动装配:
+</h5><p>根据指定的装配规则(属性名称或者属性类型),spring自动将匹配的属性值进行注入</p>
+<p>bean的标签的属性值autowrite 常用的两个值:</p>
+<p>​							byName 根据属性名称注入,注入bean的id值和类属性名称一样</p>
+<p>​							byType根据属性类型注入</p>
+<h6 id="bean外部属性文件">bean外部属性文件:
+</h6><p>1.配置德鲁伊连接池</p>
+<p>2.引用外部属性文件配置德鲁伊数据库连接池</p>
+<p>直接创建</p>
+<p>[外链图片转存失败,源站可能有防盗链机制,建议将图片保存下来直接上传(img-NcdRAhYn-1681616394865)(C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20230415110819440.png)]</p>
+<p>引用外部文件创建</p>
+<p>1.在外部创建德鲁伊配置文件</p>
+<p>2.引入context名称空间</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/a45945933deb0a60beba20b37102c289.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<h4 id="注解">注解:
+</h4><p>注解可以写在类上面,方法上面,属性上面</p>
+<p>1.@component</p>
+<p>2.@service</p>
+<p>3.@controller</p>
+<p>4.@repository</p>
+<p>都可以用来创建bean实例,在注解中不写任何内容默认情况下是类名的首字符小写其他不变</p>
+<p>基于注解方式来进行对象创建:</p>
+<p>1.引入jar包</p>
+<p>2.开启组件扫描</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;context:component-scan</span> <span class="na">base-package=</span><span class="s">&#34;&#34;</span><span class="nt">&gt;&lt;/context:component-scan&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>如果要扫描多个包,多个包使用逗号隔开或者直接扫描包的上层目录</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;context:component-scan</span> <span class="na">base-package=</span><span class="s">&#34;Test&#34;</span> <span class="na">use-default-filters=</span><span class="s">&#34;false&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;context:include-filter</span> <span class="na">type=</span><span class="s">&#34;annotation&#34;</span> <span class="na">expression=</span><span class="s">&#34;org.springframework.stereotype.Service&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/context:component-scan&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>只扫描这个包中是service注解的类</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;context:component-scan</span> <span class="na">base-package=</span><span class="s">&#34;Test&#34;</span> <span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;context:exclude-filter</span> <span class="na">type=</span><span class="s">&#34;annotation&#34;</span> <span class="na">expression=</span><span class="s">&#34;org.springframework.stereotype.Service&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/context:component-scan&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>只不扫描这个包中为该注解的类</p>
+<h6 id="基于注解方式实现属性注入">基于注解方式实现属性注入
+</h6><p>1.@Autowrited 根据属性类型进行自动装配</p>
+<p>2.@Quqlifier 根据属性名称进行注入和@Autowrited一起使用</p>
+<p>3.@Resource 可以根据属性类型注入,也可以根据属性名称进行注入</p>
+<p>4.@value注入不同类型属性</p>
+<p>@Resource不加内容就是根据属性的类型进行注入,加上名称就是根据名称进行注入</p>
+<h6 id="完全注解开发">完全注解开发:
+</h6><p>1.创建配置类使用注解@Configuration @ComponentScan(basePackages={&rdquo; 包名&rdquo;})</p>
+<p>2.加载配置文件,使用AnnotationConfigApplicationContext(配置类.class)</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/7cdd4fbf993898aef7c56e1ef327217f.png"
+	
+	
+	
+	loading="lazy"
+	
+		alt="img"
+	
+	
+></p>
+<h4 id="aop">AOP:
+</h4><p>概念:面向切面编程(方面)利用aop可以对业务逻辑的各个部分进行隔离,从而使得业务逻辑各部分之间的耦合度降低,提高程序的的可重用性,同时提高开发的效率</p>
+<p>(不通过修改源码方式,在主干功能里面添加功能)</p>
+<p>底层原理:</p>
+<p>1.有接口的使用jdk动态代理</p>
+<p>使用类Proxy 调用 newProxyInstance方法生成代理对象,该方法有3个参数</p>
+<p>第一个参数是,类加载器</p>
+<p>第二个参数是增强方法所在的类,这个实现的接口,支持多个接口</p>
+<p>第三个参数是,实现IncocationHandler创建代理对象写增强的那一部分</p>
+<h6 id="术语">术语:
+</h6><p>1.连接点 :类中哪些方法可以被增强,这些方法称为连接点</p>
+<p>2.切入点:实际被增强的方法,称为切入点</p>
+<p>3.通知(增强)  实际增强的逻辑部分被称为通知(增强)</p>
+<p>​        			   1.前置通知</p>
+<p>​						2后置通知</p>
+<p>​						3.环绕通知</p>
+<p>​						4.异常通知</p>
+<p>​						5.最终通知</p>
+<p>4.切面:把通知应用到切入点的过程</p>
+<p>切入点表达式:</p>
+<p>​					execution(权限修饰符.返回类型,类全路径 ,方法名称(参数列表) )</p>
+<p>权限修饰符可以省略</p>
+<p>返回值类型省略表示任意返回值类型都可以</p>
+<p>参数列表可以使用 .. 表示有无参数均可，有参数可以是任意类型</p>
+<p>参数列表可以使用 * , 表示可以是任何的数据类型,但必须有参数</p>
+<p>Aspect</p>
+<p>1.创建类,在类中建立方法</p>
+<p>2.创建一个增强类在增强对象上写@Aspectj  在增强类中建立不同的方法,让不同的方法代表不同通知类型</p>
+<p>3.进行通知配置,开启注解扫描</p>
+<p>相同的切入点提取</p>
+<p>@pointcut(value= )</p>
+<p>public void pointdemo(){</p>
+<p>}</p>
+<p>之后可以直接在注解中调用这个方法</p>
+<p>有多个增强类同一个方法进行增强,设置增强类优先级</p>
+<p>@order(数字) 数字类型越小优先级越高</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/d53e71ab94aeff1f8f8e8e3439e306a8.png#pic_center"
+	
+	
+	
+	loading="lazy"
+	
+		alt="在这里插入图片描述"
+	
+	
+></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">@EnableAspectJAutoProxy(proxyTargetClass = true)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>注解开启代理</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2023 - 
+        
+        2025 zjx
+    </section>
+    
+    <section class="powerby">
+        使用 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> 构建 <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.30.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/zjx.github.io/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
